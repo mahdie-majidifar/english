@@ -1,0 +1,25 @@
+{
+  "name": "ai-english-coach",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@12.9.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md,css}\" --ignore-path .gitignore",
+    "db:generate": "pnpm --filter @coach/api db:generate",
+    "db:migrate": "pnpm --filter @coach/api db:migrate",
+    "db:seed": "pnpm --filter @coach/api db:seed"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "turbo": "^2.11.7",
+    "typescript": "^6.0.2"
+  }
+}

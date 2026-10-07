@@ -1,0 +1,449 @@
+// Schema grows phase by phase (see docs/TECHNICAL_PLAN.md §4).
+// Phase 0: identity only.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum ItemType {
+  VOCABULARY
+  COLLOCATION
+  GRAMMAR
+  EXPRESSION
+  WORD_FORMATION
+  IRREGULAR_VERB
+  WORD_DISTINCTION
+  SENTENCE_PATTERN
+  PRONUNCIATION
+}
+
+enum ContentSource {
+  TEACHER
+  BOOK
+  USER
+  AI_SUGGESTED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  displayName  String
+  role         Role     @default(STUDENT)
+  /// IANA timezone. "Today" for streaks and sessions is computed in this zone.
+  timezone     String   @default("Asia/Tehran")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile          UserProfile?
+  refreshTokens    RefreshToken[]
+  books            Book[]
+  enrollments      Enrollment[]
+  items            LearningItem[]
+  files            StoredFile[]
+  teacherSessions  TeacherSession[]
+  materials        TeacherMaterial[]
+  teacherExercises TeacherExercise[]
+  exercises        Exercise[]
+  attempts         ExerciseAttempt[]
+}
+
+model UserProfile {
+  userId           String   @id @db.Uuid
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// CEFR, e.g. "B1".
+  englishLevel     String?
+  learningGoal     String?
+  dailyGoalMinutes Int      @default(10)
+  sessionMinutes   Int      @default(10)
+  updatedAt        DateTime @updatedAt
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// SHA-256 of the opaque token. The raw token is never stored.
+  tokenHash String    @unique
+  /// All tokens descended from one login share a family. Reuse of a revoked token revokes the family.
+  familyId  String    @db.Uuid
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([familyId])
+}
+
+// ───────────────────────── Catalog ─────────────────────────
+// Book → Unit → Lesson. Nothing is hardcoded to one book: American English File 3, 4, 5 are just rows.
+
+model Book {
+  id          String   @id @default(uuid()) @db.Uuid
+  /// MVP: always the learner. A public catalog (ownerId = null) is a later SaaS step.
+  ownerId     String   @db.Uuid
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  series      String
+  title       String
+  levelNumber Int?
+  cefr        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  units       Unit[]
+  enrollments Enrollment[]
+
+  @@index([ownerId])
+}
+
+model Unit {
+  id     String  @id @default(uuid()) @db.Uuid
+  bookId String  @db.Uuid
+  book   Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  number Int
+  title  String?
+
+  lessons Lesson[]
+
+  @@unique([bookId, number])
+}
+
+model Lesson {
+  id     String @id @default(uuid()) @db.Uuid
+  unitId String @db.Uuid
+  unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  /// "8B"
+  code   String
+  /// "Business"
+  title  String
+
+  items           LearningItemSource[]
+  enrollments     Enrollment[]
+  teacherSessions TeacherSession[]
+
+  @@unique([unitId, code])
+}
+
+/// A learner studying a book. The current lesson drives what the daily session focuses on.
+model Enrollment {
+  id              String           @id @default(uuid()) @db.Uuid
+  userId          String           @db.Uuid
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookId          String           @db.Uuid
+  book            Book             @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  status          EnrollmentStatus @default(ACTIVE)
+  currentLessonId String?          @db.Uuid
+  currentLesson   Lesson?          @relation(fields: [currentLessonId], references: [id], onDelete: SetNull)
+  /// Bumped whenever the learner sets a current lesson; the newest ACTIVE enrollment is "the current book".
+  activatedAt     DateTime         @default(now())
+  startedAt       DateTime         @default(now())
+
+  @@unique([userId, bookId])
+  @@index([userId, status, activatedAt])
+}
+
+// ───────────────────────── Content ─────────────────────────
+// One table for every kind of learning item (word, collocation, grammar point, ...).
+// Mistakes, reviews and mastery can then point at any item without polymorphic relations.
+
+model LearningItem {
+  id             String        @id @default(uuid()) @db.Uuid
+  ownerId        String        @db.Uuid
+  owner          User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  type           ItemType
+  headword       String
+  /// Canonical lowercase form, used to detect duplicates.
+  normalizedKey  String
+  meaningEn      String?
+  meaningFa      String?
+  /// Type-specific extras, validated with Zod (packages/contracts) before every write.
+  payload        Json
+  payloadVersion Int           @default(1)
+  source         ContentSource @default(USER)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  archivedAt     DateTime?
+
+  sources        LearningItemSource[]
+  exerciseLinks  ExerciseItem[]
+  attemptResults AttemptItemResult[]
+
+  @@unique([ownerId, type, normalizedKey])
+  @@index([ownerId, type, archivedAt])
+  @@index([ownerId, createdAt])
+}
+
+/// Where an item was met. Two kinds of rows share this table:
+///  - a lesson link (lessonId set): the item belongs to a lesson of a book
+///  - a teacher-session link (teacherSessionId set): the teacher taught it in a class
+model LearningItemSource {
+  id               String          @id @default(uuid()) @db.Uuid
+  itemId           String          @db.Uuid
+  item             LearningItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  lessonId         String?         @db.Uuid
+  lesson           Lesson?         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  teacherSessionId String?         @db.Uuid
+  teacherSession   TeacherSession? @relation(fields: [teacherSessionId], references: [id], onDelete: Cascade)
+  createdAt        DateTime        @default(now())
+
+  @@unique([itemId, lessonId])
+  @@unique([itemId, teacherSessionId])
+  @@index([lessonId])
+  @@index([teacherSessionId])
+}
+
+// ───────────────────────── Teacher material ─────────────────────────
+// Originals (pasted text, uploaded files, exercise text) are never modified.
+// Anything the AI produces is stored apart from them and only becomes learning content after the learner confirms it.
+
+enum MaterialCategory {
+  CLASS_NOTES
+  EXERCISE
+  HANDOUT
+}
+
+enum IngestionStatus {
+  UPLOADED
+  EXTRACTING
+  PARSING
+  AWAITING_REVIEW
+  COMMITTED
+  FAILED
+  DISCARDED
+}
+
+model StoredFile {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Path relative to the storage root. Random, never derived from the original name.
+  storageKey   String   @unique
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  sha256       String
+  createdAt    DateTime @default(now())
+
+  materials TeacherMaterial[]
+
+  @@index([userId, sha256])
+}
+
+model TeacherSession {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  classDate DateTime @db.Date
+  lessonId  String?  @db.Uuid
+  lesson    Lesson?  @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  materials TeacherMaterial[]
+  exercises TeacherExercise[]
+  items     LearningItemSource[]
+
+  @@index([userId, classDate])
+}
+
+model TeacherMaterial {
+  id            String           @id @default(uuid()) @db.Uuid
+  userId        String           @db.Uuid
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId     String?          @db.Uuid
+  session       TeacherSession?  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  category      MaterialCategory @default(CLASS_NOTES)
+  title         String
+  /// What the learner pasted. Immutable.
+  rawText       String?
+  fileId        String?          @db.Uuid
+  file          StoredFile?      @relation(fields: [fileId], references: [id], onDelete: SetNull)
+  /// Text pulled out of an uploaded file. Immutable once set.
+  extractedText String?
+  status        IngestionStatus  @default(UPLOADED)
+  errorMessage  String?
+  /// The AI's proposal (ParsedMaterial). Replaced when the material is re-analysed; never touches the originals.
+  proposal      Json?
+  aiRunId       String?          @db.Uuid
+  /// Set while a worker is processing it; used to recover materials stuck after a crash.
+  lockedAt      DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  exercises TeacherExercise[]
+
+  @@index([userId, createdAt])
+  @@index([status, lockedAt])
+}
+
+/// An exercise from the teacher, kept word for word. Practice variants (phase 3) point back to it.
+model TeacherExercise {
+  id           String          @id @default(uuid()) @db.Uuid
+  userId       String          @db.Uuid
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  materialId   String          @db.Uuid
+  material     TeacherMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  sessionId    String?         @db.Uuid
+  session      TeacherSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  originalText String
+  skill        String
+  topic        String?
+  createdAt    DateTime        @default(now())
+
+  @@index([userId, createdAt])
+}
+
+/// One row per AI call: what ran, how long it took and what it cost in tokens.
+model AiRun {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String?  @db.Uuid
+  task          String
+  provider      String
+  model         String
+  promptId      String
+  promptVersion Int
+  success       Boolean
+  inputTokens   Int?
+  outputTokens  Int?
+  latencyMs     Int
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([task, createdAt])
+}
+
+// ───────────────────────── Exercises ─────────────────────────
+// An exercise is a question the learner can answer. Templates and AI both fill the same pool;
+// the original teacher exercises live in TeacherExercise and are never modified.
+
+enum ExerciseLevel {
+  RECOGNITION
+  RECALL
+  CONTEXT
+  PRODUCTION
+}
+
+enum ExerciseOrigin {
+  TEACHER_ORIGINAL
+  TEACHER_DERIVED
+  AI_GENERATED
+  TEMPLATE
+}
+
+enum ExerciseStatus {
+  ACTIVE
+  RETIRED
+}
+
+enum EvaluationMode {
+  RULE
+  AI
+}
+
+enum AttemptContext {
+  PRACTICE
+  DAILY_SESSION
+  QUIZ
+  EXAM
+  CHALLENGE
+}
+
+model Exercise {
+  id               String         @id @default(uuid()) @db.Uuid
+  ownerId          String         @db.Uuid
+  owner            User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  /// Key into the format registry in packages/contracts ("multiple_choice", ...).
+  format           String
+  level            ExerciseLevel
+  /// SkillArea from packages/contracts.
+  skill            String
+  origin           ExerciseOrigin
+  status           ExerciseStatus @default(ACTIVE)
+  /// What the learner sees. Safe to send to the browser.
+  content          Json
+  /// The answer key. Server only: never sent before the learner has answered.
+  solution         Json
+  evaluationMode   EvaluationMode
+  estimatedSeconds Int
+  /// Identity of the question. The same fingerprint is never stored twice for one learner.
+  fingerprint      String
+  aiRunId          String?        @db.Uuid
+  createdAt        DateTime       @default(now())
+
+  items    ExerciseItem[]
+  attempts ExerciseAttempt[]
+
+  @@unique([ownerId, fingerprint])
+  @@index([ownerId, status, level])
+}
+
+model ExerciseItem {
+  exerciseId String       @db.Uuid
+  exercise   Exercise     @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  itemId     String       @db.Uuid
+  item       LearningItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  isPrimary  Boolean      @default(true)
+
+  @@id([exerciseId, itemId])
+  @@index([itemId])
+}
+
+/// One answer. The id comes from the browser, so retrying a request can never count an answer twice.
+model ExerciseAttempt {
+  id          String         @id @db.Uuid
+  userId      String         @db.Uuid
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exerciseId  String         @db.Uuid
+  exercise    Exercise       @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  context     AttemptContext @default(PRACTICE)
+  response    Json
+  /// 0..1
+  score       Float
+  isCorrect   Boolean
+  verdict     String
+  evaluation  Json
+  evaluatedBy EvaluationMode
+  durationMs  Int?
+  hintsUsed   Int            @default(0)
+  createdAt   DateTime       @default(now())
+
+  items AttemptItemResult[]
+
+  @@index([userId, createdAt])
+  @@index([userId, exerciseId])
+}
+
+/// The result of an attempt for each item it covered (a matching exercise covers several).
+model AttemptItemResult {
+  attemptId  String          @db.Uuid
+  attempt    ExerciseAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  itemId     String          @db.Uuid
+  item       LearningItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  isCorrect  Boolean
+  score      Float
+  errorCodes String[]
+
+  @@id([attemptId, itemId])
+  @@index([itemId])
+}
