@@ -10,7 +10,7 @@ import { useCurrent } from '@/features/catalog/hooks';
 import { useSessions } from '@/features/teacher/hooks';
 
 /** Current book, unit and lesson: the anchor for everything the coach will build. */
-function CurrentFocus() {
+export function CurrentFocus() {
   const { data: current, isPending } = useCurrent();
   if (isPending) return <div className="h-40 animate-pulse rounded-card bg-subtle" aria-busy />;
 
@@ -87,13 +87,13 @@ const STEPS = [
   },
 ] as const;
 
-/** Dashboard until the real "today's session" arrives with the practice engine (phase 4). */
+/** What a new learner sees until there is something to practise. */
 export function GettingStarted() {
   const { data: current } = useCurrent();
   const { data: sessions } = useSessions();
   const hasNotes = Boolean(sessions?.some((s) => s.itemCount > 0));
   const done = [Boolean(current), hasNotes, false];
-  const links = ['/books', '/teacher/new', null];
+  const links = ['/books', '/teacher/new', '/session'];
 
   return (
     <section aria-labelledby="getting-started" className="space-y-5">
@@ -107,7 +107,7 @@ export function GettingStarted() {
           Your coach is getting ready.
         </h2>
         <p className="mt-3 max-w-xl text-lg text-white/85">
-          Your daily session appears here once the coach can build practice from your notes. Three
+          Your daily session appears here once the coach has something to build it from. Three
           steps to get there:
         </p>
       </Card>
@@ -133,13 +133,9 @@ export function GettingStarted() {
                   </p>
                 ) : href ? (
                   <Link href={href} className={buttonClass('secondary', 'sm', 'mt-4')}>
-                    {i === 0 ? 'Choose a book' : 'Add notes'} <ArrowRight className="size-4" />
+                    {i === 0 ? 'Choose a book' : i === 1 ? 'Add notes' : 'Start session'} <ArrowRight className="size-4" />
                   </Link>
-                ) : (
-                  <p className="mt-4 inline-block rounded-full bg-subtle px-3 py-1 text-sm font-semibold text-mute">
-                    Coming soon
-                  </p>
-                )}
+                ) : null}
               </Card>
             </li>
           );

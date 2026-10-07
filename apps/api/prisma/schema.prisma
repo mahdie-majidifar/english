@@ -54,17 +54,24 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  profile          UserProfile?
-  refreshTokens    RefreshToken[]
-  books            Book[]
-  enrollments      Enrollment[]
-  items            LearningItem[]
-  files            StoredFile[]
-  teacherSessions  TeacherSession[]
-  materials        TeacherMaterial[]
-  teacherExercises TeacherExercise[]
-  exercises        Exercise[]
-  attempts         ExerciseAttempt[]
+  profile           UserProfile?
+  refreshTokens     RefreshToken[]
+  books             Book[]
+  enrollments       Enrollment[]
+  items             LearningItem[]
+  files             StoredFile[]
+  teacherSessions   TeacherSession[]
+  materials         TeacherMaterial[]
+  teacherExercises  TeacherExercise[]
+  exercises         Exercise[]
+  attempts          ExerciseAttempt[]
+  userItemStates    UserItemState[]
+  reviewLogs        ReviewLog[]
+  mistakes          Mistake[]
+  dailySessions     DailySession[]
+  dailyActivities   DailyActivity[]
+  userGamifications UserGamification[]
+  xpEvents          XpEvent[]
 }
 
 model UserProfile {
@@ -187,6 +194,9 @@ model LearningItem {
   sources        LearningItemSource[]
   exerciseLinks  ExerciseItem[]
   attemptResults AttemptItemResult[]
+  userStates     UserItemState[]
+  mistakes       Mistake[]
+  sessionItems   DailySessionItem[]
 
   @@unique([ownerId, type, normalizedKey])
   @@index([ownerId, type, archivedAt])
@@ -391,8 +401,9 @@ model Exercise {
   aiRunId          String?        @db.Uuid
   createdAt        DateTime       @default(now())
 
-  items    ExerciseItem[]
-  attempts ExerciseAttempt[]
+  items        ExerciseItem[]
+  attempts     ExerciseAttempt[]
+  sessionItems DailySessionItem[]
 
   @@unique([ownerId, fingerprint])
   @@index([ownerId, status, level])
@@ -428,6 +439,10 @@ model ExerciseAttempt {
   hintsUsed   Int            @default(0)
   createdAt   DateTime       @default(now())
 
+  /// Set when the answer was given as part of a daily session.
+  sessionItemId String?           @unique @db.Uuid
+  sessionItem   DailySessionItem? @relation(fields: [sessionItemId], references: [id], onDelete: SetNull)
+
   items AttemptItemResult[]
 
   @@index([userId, createdAt])
@@ -446,4 +461,218 @@ model AttemptItemResult {
 
   @@id([attemptId, itemId])
   @@index([itemId])
+}
+
+// ───────────────────────── Learning state ─────────────────────────
+// What the learner knows, per item: when to review it next (FSRS), how well it is known, and how
+// hard the exercises should be. Content (LearningItem) never carries this; it is per learner.
+
+enum LearningStatus {
+  NEW
+  LEARNING
+  REVIEW
+  MASTERED
+}
+
+model UserItemState {
+  userId              String         @db.Uuid
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId              String         @db.Uuid
+  item                LearningItem   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  status              LearningStatus @default(NEW)
+  /// A flag on top of the status, not a status of its own.
+  isWeak              Boolean        @default(false)
+  // FSRS scheduling
+  due                 DateTime?
+  stability           Float          @default(0)
+  difficulty          Float          @default(0)
+  fsrsState           Int            @default(0)
+  reps                Int            @default(0)
+  lapses              Int            @default(0)
+  scheduledDays       Float          @default(0)
+  learningSteps       Int            @default(0)
+  lastReviewedAt      DateTime?
+  /// Only the first answer of each local day moves the schedule.
+  lastReviewLocalDate DateTime?      @db.Date
+  // Mastery and adaptive difficulty
+  mastery             Float          @default(0)
+  accuracyEwma        Float          @default(0)
+  currentLevel        ExerciseLevel  @default(RECOGNITION)
+  highestLevelPassed  ExerciseLevel?
+  levelStreak         Int            @default(0)
+  firstSeenAt         DateTime?
+  updatedAt           DateTime       @updatedAt
+
+  @@id([userId, itemId])
+  @@index([userId, due])
+  @@index([userId, status])
+}
+
+/// One scheduled review, kept so the scheduler can be tuned to the learner later.
+model ReviewLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @db.Uuid
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId         String   @db.Uuid
+  attemptId      String?  @db.Uuid
+  /// 1 Again, 2 Hard, 3 Good, 4 Easy
+  rating         Int
+  stabilityAfter Float
+  dueAfter       DateTime
+  reviewedAt     DateTime @default(now())
+
+  @@index([userId, itemId])
+}
+
+// ───────────────────────── Mistakes ─────────────────────────
+
+enum MistakeStatus {
+  ACTIVE
+  IMPROVING
+  RESOLVED
+}
+
+/// One kind of error on one item, counted. "negotiate: wrong collocate" four times is one Mistake with four occurrences.
+model Mistake {
+  id              String        @id @default(uuid()) @db.Uuid
+  userId          String        @db.Uuid
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId          String        @db.Uuid
+  item            LearningItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  /// ERROR_TYPES key from packages/contracts.
+  errorCode       String
+  signature       String
+  status          MistakeStatus @default(ACTIVE)
+  occurrences     Int           @default(1)
+  priority        Float
+  /// Different days with a right answer since the last error. Three resolves it.
+  correctDays     Int           @default(0)
+  lastCorrectDate DateTime?     @db.Date
+  firstSeenAt     DateTime      @default(now())
+  lastSeenAt      DateTime      @default(now())
+
+  occurrenceLog MistakeOccurrence[]
+
+  @@unique([userId, signature])
+  @@index([userId, status, priority])
+}
+
+model MistakeOccurrence {
+  id             String   @id @default(uuid()) @db.Uuid
+  mistakeId      String   @db.Uuid
+  mistake        Mistake  @relation(fields: [mistakeId], references: [id], onDelete: Cascade)
+  attemptId      String   @db.Uuid
+  userAnswer     String
+  expectedAnswer String
+  createdAt      DateTime @default(now())
+
+  @@index([mistakeId, createdAt])
+}
+
+// ───────────────────────── Daily session ─────────────────────────
+
+enum SessionStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum SessionBlock {
+  WARM_UP
+  NEW_CONTENT
+  PRACTICE
+  CONTEXT
+  PRODUCTION
+  REVIEW
+}
+
+enum SelectionReason {
+  DUE_REVIEW
+  MISTAKE
+  WEAK_AREA
+  NEW_CONTENT
+  TEACHER_ASSIGNED
+  RECOVERY
+}
+
+model DailySession {
+  id             String        @id @default(uuid()) @db.Uuid
+  userId         String        @db.Uuid
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// The learner's own calendar day.
+  localDate      DateTime      @db.Date
+  /// 1 for the day's first session, 2 for an extra one, ...
+  ordinal        Int           @default(1)
+  status         SessionStatus @default(PLANNED)
+  plannedSeconds Int
+  activeSeconds  Int           @default(0)
+  /// Why these items: counts per reason, and the planner version.
+  planMeta       Json
+  score          Float?
+  xpEarned       Int           @default(0)
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime      @default(now())
+
+  items DailySessionItem[]
+
+  @@unique([userId, localDate, ordinal])
+}
+
+model DailySessionItem {
+  id         String          @id @default(uuid()) @db.Uuid
+  sessionId  String          @db.Uuid
+  session    DailySession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  position   Int
+  block      SessionBlock
+  exerciseId String          @db.Uuid
+  exercise   Exercise        @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  itemId     String          @db.Uuid
+  item       LearningItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  reason     SelectionReason
+
+  attempt ExerciseAttempt?
+
+  @@unique([sessionId, position])
+}
+
+// ───────────────────────── Progress and rewards ─────────────────────────
+
+model DailyActivity {
+  userId            String   @db.Uuid
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  localDate         DateTime @db.Date
+  activeSeconds     Int      @default(0)
+  attempts          Int      @default(0)
+  correct           Int      @default(0)
+  sessionsCompleted Int      @default(0)
+  xp                Int      @default(0)
+  goalMet           Boolean  @default(false)
+
+  @@id([userId, localDate])
+}
+
+model UserGamification {
+  userId         String    @id @db.Uuid
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalXp        Int       @default(0)
+  currentStreak  Int       @default(0)
+  longestStreak  Int       @default(0)
+  lastStreakDate DateTime? @db.Date
+}
+
+/// Every XP award, once. The unique key makes retries harmless.
+model XpEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Int
+  /// ATTEMPT, SESSION or GOAL
+  reason    String
+  refId     String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, reason, refId])
+  @@index([userId, createdAt])
 }

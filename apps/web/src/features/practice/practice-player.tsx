@@ -2,8 +2,15 @@
 
 import { HelpCircle, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import type { ClientExercise, ExerciseFormat, PracticeRun } from '@coach/contracts';
+import { useCallback, useEffect, useReducer, useRef, useState, type ReactNode } from 'react';
+import {
+  BLOCK_LABELS,
+  REASON_LABELS,
+  type ClientExercise,
+  type ExerciseFormat,
+  type SelectionReason,
+  type SessionBlock,
+} from '@coach/contracts';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { SkillChip, type Mode } from '@/components/ui/skill-chip';
@@ -13,7 +20,7 @@ import { errorMessage } from '@/lib/errors';
 import { FeedbackPanel } from './feedback-panel';
 import { hasSeenHowTo, HowToCard, markHowToSeen } from './how-to-card';
 import { useSubmitAttempt } from './hooks';
-import { currentExercise, initialState, playerReducer } from './player-state';
+import { currentExercise, initialState, playerReducer, type StepRecord } from './player-state';
 import { FORMAT_UI } from './registry';
 import { PracticeSummary } from './summary';
 
@@ -33,14 +40,23 @@ function isTyping(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
 }
 
+/** An exercise that may belong to a daily session (then it carries its slot, block and reason). */
+export type PlayableExercise = ClientExercise & {
+  sessionItemId?: string;
+  block?: SessionBlock;
+  reason?: SelectionReason;
+};
+
 interface PracticePlayerProps {
-  run: PracticeRun;
+  run: { exercises: PlayableExercise[] };
   /** Start again with a freshly built run. */
   onAgain: () => void;
   backHref: string;
+  /** Replaces the default summary (the daily session shows XP and streak instead). */
+  renderDone?: (ctx: { exercises: ClientExercise[]; steps: StepRecord[]; elapsedSeconds: number }) => ReactNode;
 }
 
-export function PracticePlayer({ run, onAgain, backHref }: PracticePlayerProps) {
+export function PracticePlayer({ run, onAgain, backHref, renderDone }: PracticePlayerProps) {
   const router = useRouter();
   const submitAttempt = useSubmitAttempt();
   const startedAt = useRef(Date.now());
@@ -81,6 +97,7 @@ export function PracticePlayer({ run, onAgain, backHref }: PracticePlayerProps) 
           exerciseId: exercise.id,
           response: value,
           durationMs: Date.now() - state.shownAt,
+          sessionItemId: (exercise as PlayableExercise).sessionItemId,
         });
         dispatch({ type: 'submitted', result });
       } catch (error) {
@@ -129,6 +146,7 @@ export function PracticePlayer({ run, onAgain, backHref }: PracticePlayerProps) 
   }, [state.phase]);
 
   if (state.phase === 'done') {
+    if (renderDone) return <>{renderDone({ exercises: state.exercises, steps: state.steps, elapsedSeconds: elapsed })}</>;
     return (
       <PracticeSummary exercises={state.exercises} steps={state.steps} elapsedSeconds={elapsed} onAgain={onAgain} backHref={backHref} />
     );
@@ -140,6 +158,12 @@ export function PracticePlayer({ run, onAgain, backHref }: PracticePlayerProps) 
   const mode = SKILL_MODE[exercise.skill] ?? 'review';
   const locked = !answering;
   const checking = state.phase === 'submitting';
+
+  // Daily session: say which block we are in, once at its start, and why this exercise is here.
+  const { block, reason } = exercise as PlayableExercise;
+  const previous = state.exercises[state.index - 1] as PlayableExercise | undefined;
+  const newBlock = Boolean(block) && (state.index === 0 || previous?.block !== block);
+  const blockCount = state.exercises.filter((e) => (e as PlayableExercise).block === block).length;
 
   return (
     <div className="flex min-h-dvh flex-col bg-paper">
@@ -192,8 +216,22 @@ export function PracticePlayer({ run, onAgain, backHref }: PracticePlayerProps) 
 
       <main className="flex-1">
         <div className="mx-auto max-w-2xl space-y-6 px-5 pb-10 pt-8">
+          {block && newBlock && (
+            <div key={block} className="flex animate-[slide-up_260ms_ease-out] items-center gap-3 rounded-2xl bg-ink px-5 py-3 text-white">
+              <span className="font-heading text-lg font-extrabold">{BLOCK_LABELS[block]}</span>
+              <span className="text-base text-white/70">
+                {blockCount} exercise{blockCount === 1 ? '' : 's'}
+              </span>
+            </div>
+          )}
+
           <div className="space-y-3">
-            <SkillChip mode={mode} label={`${exercise.items.length > 1 ? 'Review' : exercise.items[0]?.headword ?? ''}`} />
+            <div className="flex flex-wrap items-center gap-2">
+              <SkillChip mode={mode} label={`${exercise.items.length > 1 ? 'Review' : exercise.items[0]?.headword ?? ''}`} />
+              {reason && (
+                <span className="rounded-full bg-subtle px-3 py-1.5 text-sm font-semibold text-mute">{REASON_LABELS[reason]}</span>
+              )}
+            </div>
             <h1 className="font-heading text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">{content.instruction}</h1>
             {content.helper && <p className="text-lg text-mute">{content.helper}</p>}
           </div>

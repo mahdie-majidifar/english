@@ -2,6 +2,7 @@ import {
   BookOpen,
   ChartLine,
   Dumbbell,
+  Flag,
   GraduationCap,
   House,
   Library,
@@ -24,6 +25,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'Home', icon: House, enabled: true, mobile: true },
   { href: '/practice', label: 'Practice', icon: Dumbbell, enabled: true, mobile: true },
+  { href: '/mistakes', label: 'My mistakes', icon: Flag, enabled: true },
   { href: '/library', label: 'Library', icon: Library, enabled: true, mobile: true },
   { href: '/books', label: 'Books', icon: BookOpen, enabled: true, mobile: true },
   { href: '/teacher', label: 'Teacher notes', icon: NotebookPen, enabled: true },

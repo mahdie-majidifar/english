@@ -9,6 +9,10 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { CatalogModule } from './modules/catalog/catalog.module.js';
 import { ContentModule } from './modules/content/content.module.js';
 import { ExercisesModule } from './modules/exercises/exercises.module.js';
+import { LearningModule } from './modules/learning/learning.module.js';
+import { ProgressModule } from './modules/progress/progress.module.js';
+import { DashboardModule } from './modules/dashboard/dashboard.module.js';
+import { SessionsModule } from './modules/sessions/sessions.module.js';
 import { HealthController } from './modules/health/health.controller.js';
 import { TeacherModule } from './modules/teacher/teacher.module.js';
 import { UsersModule } from './modules/users/users.module.js';
@@ -29,7 +33,11 @@ import { UsersModule } from './modules/users/users.module.js';
     CatalogModule,
     ContentModule,
     TeacherModule,
+    LearningModule,
+    ProgressModule,
     ExercisesModule,
+    SessionsModule,
+    DashboardModule,
   ],
   controllers: [HealthController],
   providers: [

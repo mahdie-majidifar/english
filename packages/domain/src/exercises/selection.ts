@@ -2,18 +2,6 @@ import type { ExerciseFormat, ExerciseLevel } from '@coach/contracts';
 
 const LEVELS: ExerciseLevel[] = ['RECOGNITION', 'RECALL', 'CONTEXT', 'PRODUCTION'];
 
-/**
- * Starting level for an item, from how many times it has been answered correctly so far.
- * Phase 4 replaces this with the adaptive engine (spaced repetition and mistakes); until then,
- * practice simply gets harder as an item is known better.
- */
-export function levelForHistory(correctAttempts: number): ExerciseLevel {
-  if (correctAttempts < 2) return 'RECOGNITION';
-  if (correctAttempts < 4) return 'RECALL';
-  if (correctAttempts < 7) return 'CONTEXT';
-  return 'PRODUCTION';
-}
-
 /** The next level up, or the same one at the top. */
 export function oneLevelUp(level: ExerciseLevel): ExerciseLevel {
   return LEVELS[Math.min(LEVELS.indexOf(level) + 1, LEVELS.length - 1)]!;

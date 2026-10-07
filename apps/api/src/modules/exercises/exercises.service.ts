@@ -5,40 +5,40 @@ import {
   ITEM_TYPE_META,
   type ClientExercise,
   type ExerciseFormat,
+  type ExerciseLevel,
   type ExerciseOrigin,
   type PracticeRequest,
   type PracticeRun,
 } from '@coach/contracts';
 import {
+  DEFAULT_WEIGHTS,
   chooseExercise,
   generateMatching,
   generateTemplates,
-  levelForHistory,
   oneLevelUp,
+  scoreItem,
   shuffle,
+  toLocalDate,
   type ExerciseDraft,
   type ItemInput,
+  type PlannerItem,
 } from '@coach/domain';
 import { DomainError, notFound } from '../../core/http/domain-error.js';
 import { isUniqueViolation } from '../../core/prisma/errors.js';
 import { PrismaService } from '../../core/prisma/prisma.service.js';
 import { Prisma, type Exercise, type ExerciseItem } from '../../generated/prisma/client.js';
 import { ExerciseGeneratorService } from '../ai/exercise-generator.service.js';
+import { LearningService, toPlannerState } from '../learning/learning.service.js';
 
-const fingerprintOf = (key: string): string => createHash('sha256').update(key).digest('hex');
+export const fingerprintOf = (key: string): string => createHash('sha256').update(key).digest('hex');
 
-type ExerciseWithItems = Exercise & { items: (ExerciseItem & { item: { id: string; headword: string } })[] };
+export type ExerciseWithItems = Exercise & { items: (ExerciseItem & { item: { id: string; headword: string } })[] };
 
-const withItems = { items: { include: { item: { select: { id: true, headword: true } } } } } as const;
-
-interface ItemStats {
-  correct: number;
-  last: Date | null;
-}
+export const withItems = { items: { include: { item: { select: { id: true, headword: true } } } } } as const;
 
 const RECENT_EXERCISE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-function toClient(e: ExerciseWithItems): ClientExercise {
+export function toClient(e: ExerciseWithItems): ClientExercise {
   return {
     id: e.id,
     format: e.format as ExerciseFormat,
@@ -51,7 +51,7 @@ function toClient(e: ExerciseWithItems): ClientExercise {
   };
 }
 
-const toInput = (i: {
+export const toInput = (i: {
   id: string;
   type: ItemInput['type'];
   headword: string;
@@ -67,7 +67,7 @@ const toInput = (i: {
   payload: (i.payload ?? {}) as Record<string, unknown>,
 });
 
-const itemSelect = {
+export const itemSelect = {
   id: true,
   type: true,
   headword: true,
@@ -81,33 +81,44 @@ export class ExercisesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly generator: ExerciseGeneratorService,
+    private readonly learning: LearningService,
   ) {}
 
   /**
    * Builds a practice run: picks the items that need attention most, and for each one an exercise
-   * at a level that fits how well it is known. Solutions never leave the server.
+   * at the level the learner has reached with it. Solutions never leave the server.
    */
   async buildPractice(userId: string, request: PracticeRequest): Promise<PracticeRun> {
-    const scope = await this.resolveScope(userId, request);
-    const candidates = await this.prisma.learningItem.findMany({
-      where: scope.where,
-      select: itemSelect,
-      take: 300,
-    });
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { timezone: true } });
+    const now = new Date();
+    const localDate = toLocalDate(now, user.timezone);
+
+    const scope = await this.resolveScope(userId, request, now);
+    const candidates = await this.prisma.learningItem.findMany({ where: scope.where, select: itemSelect, take: 300 });
     if (candidates.length === 0) return { exercises: [], scopeLabel: scope.label, itemCount: 0 };
 
-    const stats = await this.itemStats(userId, candidates.map((c) => c.id));
-    const ranked = this.rankByNeed(candidates.map(toInput), stats);
+    const context = await this.learning.contextFor(userId, candidates.map((c) => c.id), now, localDate);
+    const levelOf = (id: string): ExerciseLevel => context.get(id)?.state?.currentLevel ?? 'RECOGNITION';
+
+    // The same scoring as the daily session: due reviews, mistakes, weak and new items first.
+    const ranked = shuffle(candidates.map(toInput), Math.random)
+      .map((item) => {
+        const ctx = context.get(item.id)!;
+        const planner: PlannerItem = {
+          id: item.id,
+          state: toPlannerState(ctx.state, now),
+          mistakePriority: ctx.mistakePriority,
+          inCurrentLesson: false,
+          teacherRecency: 0,
+          seenToday: false,
+          pool: [],
+        };
+        return { item, score: scoreItem(planner, now, DEFAULT_WEIGHTS).score };
+      })
+      .sort((a, b) => b.score - a.score)
+      .map((r) => r.item);
+
     let chosen = ranked.slice(0, request.count);
-
-    // Everything the learner owns is a source of wrong options for multiple choice.
-    const library = (await this.prisma.learningItem.findMany({
-      where: { ownerId: userId, archivedAt: null },
-      select: itemSelect,
-      take: 500,
-    })).map(toInput);
-
-    const levelOf = (id: string) => levelForHistory(stats.get(id)?.correct ?? 0);
     const matchingSet = chosen.filter((i) => levelOf(i.id) === 'RECOGNITION' && i.meaningFa?.trim()).slice(0, 5);
     const matching = request.count >= 6 ? generateMatching(matchingSet) : null;
     if (matching) {
@@ -116,7 +127,7 @@ export class ExercisesService {
       chosen = [...chosen, ...ranked.filter((i) => !taken.has(i.id)).slice(0, matchingSet.length - 1)];
     }
 
-    await this.save(userId, chosen.flatMap((i) => generateTemplates(i, library)), 'TEMPLATE');
+    await this.ensureTemplatesFor(userId, chosen);
     if (matching) await this.save(userId, [matching], 'TEMPLATE');
 
     const pool = await this.poolFor(userId, chosen.map((i) => i.id));
@@ -141,11 +152,13 @@ export class ExercisesService {
         rng,
         oneLevelUp(levelOf(item.id)),
         (c) => recent.has(c.e.id),
-      );      if (!choice) continue;
+      );
+      if (!choice) continue;
       picked.push(choice.e);
       usedIds.add(choice.e.id);
       recentFormats.push(choice.format);
     }
+
     if (matching) {
       const row = await this.prisma.exercise.findUnique({
         where: { ownerId_fingerprint: { ownerId: userId, fingerprint: fingerprintOf(matching.key) } },
@@ -180,6 +193,20 @@ export class ExercisesService {
   }
 
   // ───────────── Pool ─────────────
+
+  /** Makes sure the built-in exercises for these items exist. Safe to call repeatedly. */
+  async ensureTemplatesFor(userId: string, items: ItemInput[]): Promise<void> {
+    if (items.length === 0) return;
+    // Everything the learner owns is a source of wrong options for multiple choice.
+    const library = (
+      await this.prisma.learningItem.findMany({
+        where: { ownerId: userId, archivedAt: null },
+        select: itemSelect,
+        take: 500,
+      })
+    ).map(toInput);
+    await this.save(userId, items.flatMap((i) => generateTemplates(i, library)), 'TEMPLATE');
+  }
 
   /** Stores drafts that are not stored yet. Returns how many were new. */
   private async save(userId: string, drafts: ExerciseDraft[], origin: ExerciseOrigin, aiRunId?: string): Promise<number> {
@@ -229,7 +256,8 @@ export class ExercisesService {
     return created;
   }
 
-  private async poolFor(userId: string, itemIds: string[]): Promise<Map<string, ExerciseWithItems[]>> {
+  /** Active exercises for each item (the ones where the item is the main subject). */
+  async poolFor(userId: string, itemIds: string[]): Promise<Map<string, ExerciseWithItems[]>> {
     const rows = await this.prisma.exercise.findMany({
       where: { ownerId: userId, status: 'ACTIVE', items: { some: { itemId: { in: itemIds }, isPrimary: true } } },
       include: withItems,
@@ -244,77 +272,67 @@ export class ExercisesService {
     return pool;
   }
 
-  // ───────────── Selection helpers ─────────────
-
-  private async resolveScope(
-    userId: string,
-    request: PracticeRequest,
-  ): Promise<{ where: Prisma.LearningItemWhereInput; label: string }> {
-    const base = { ownerId: userId, archivedAt: null } satisfies Prisma.LearningItemWhereInput;
-
-    if (request.scope === 'current') {
-      const enrollment = await this.prisma.enrollment.findFirst({
-        where: { userId, status: 'ACTIVE', currentLessonId: { not: null } },
-        orderBy: { activatedAt: 'desc' },
-        include: { currentLesson: true },
-      });
-      const lesson = enrollment?.currentLesson;
-      if (lesson) {
-        return {
-          where: { ...base, sources: { some: { lessonId: lesson.id } } },
-          label: `${lesson.code} · ${lesson.title}`,
-        };
-      }
-      return { where: base, label: 'Your library' };
-    }
-    if (request.scope === 'lesson') {
-      const lesson = await this.prisma.lesson.findFirst({
-        where: { id: request.lessonId!, unit: { book: { ownerId: userId } } },
-      });
-      if (!lesson) throw notFound('Lesson not found.');
-      return { where: { ...base, sources: { some: { lessonId: lesson.id } } }, label: `${lesson.code} · ${lesson.title}` };
-    }
-    if (request.scope === 'type') {
-      return { where: { ...base, type: request.type! }, label: ITEM_TYPE_META[request.type!].plural };
-    }
-    if (request.scope === 'item') {
-      const item = await this.prisma.learningItem.findFirst({ where: { ...base, id: request.itemId! }, select: { headword: true } });
-      if (!item) throw notFound('Item not found.');
-      return { where: { ...base, id: request.itemId! }, label: item.headword };
-    }
-    return { where: base, label: 'Your whole library' };
-  }
-
-  /** Items never practised first, then the ones practised longest ago. Ties are shuffled. */
-  private rankByNeed(items: ItemInput[], stats: Map<string, ItemStats>): ItemInput[] {
-    const shuffled = shuffle(items, Math.random);
-    return shuffled.sort((a, b) => {
-      const la = stats.get(a.id)?.last?.getTime() ?? 0;
-      const lb = stats.get(b.id)?.last?.getTime() ?? 0;
-      return la - lb;
-    });
-  }
-
-  private async itemStats(userId: string, itemIds: string[]): Promise<Map<string, ItemStats>> {
-    if (itemIds.length === 0) return new Map();
-    const rows = await this.prisma.$queryRaw<{ itemId: string; correct: bigint; last: Date }[]>`
-      SELECT r."itemId" AS "itemId",
-             COUNT(*) FILTER (WHERE r."isCorrect") AS correct,
-             MAX(a."createdAt") AS last
-      FROM "AttemptItemResult" r
-      JOIN "ExerciseAttempt" a ON a.id = r."attemptId"
-      WHERE a."userId" = ${userId}::uuid AND r."itemId" = ANY(${itemIds}::uuid[])
-      GROUP BY r."itemId"`;
-    return new Map(rows.map((r) => [r.itemId, { correct: Number(r.correct), last: r.last }]));
-  }
-
-  private async recentExerciseIds(userId: string): Promise<Set<string>> {
+  /** Exercises answered in the last day, so they are not asked again straight away. */
+  async recentExerciseIds(userId: string): Promise<Set<string>> {
     const since = new Date(Date.now() - RECENT_EXERCISE_WINDOW_MS);
     const rows = await this.prisma.exerciseAttempt.findMany({
       where: { userId, createdAt: { gte: since } },
       select: { exerciseId: true },
-      take: 200,
+      take: 300,
     });
     return new Set(rows.map((r) => r.exerciseId));
+  }
+
+  // ───────────── Scope ─────────────
+
+  private async resolveScope(
+    userId: string,
+    request: PracticeRequest,
+    now: Date,
+  ): Promise<{ where: Prisma.LearningItemWhereInput; label: string }> {
+    const base = { ownerId: userId, archivedAt: null } satisfies Prisma.LearningItemWhereInput;
+
+    switch (request.scope) {
+      case 'current': {
+        const enrollment = await this.prisma.enrollment.findFirst({
+          where: { userId, status: 'ACTIVE', currentLessonId: { not: null } },
+          orderBy: { activatedAt: 'desc' },
+          include: { currentLesson: true },
+        });
+        const lesson = enrollment?.currentLesson;
+        if (lesson) {
+          return { where: { ...base, sources: { some: { lessonId: lesson.id } } }, label: `${lesson.code} · ${lesson.title}` };
+        }
+        return { where: base, label: 'Your library' };
+      }
+      case 'lesson': {
+        const lesson = await this.prisma.lesson.findFirst({
+          where: { id: request.lessonId!, unit: { book: { ownerId: userId } } },
+        });
+        if (!lesson) throw notFound('Lesson not found.');
+        return { where: { ...base, sources: { some: { lessonId: lesson.id } } }, label: `${lesson.code} · ${lesson.title}` };
+      }
+      case 'type':
+        return { where: { ...base, type: request.type! }, label: ITEM_TYPE_META[request.type!].plural };
+      case 'item': {
+        const item = await this.prisma.learningItem.findFirst({ where: { ...base, id: request.itemId! }, select: { headword: true } });
+        if (!item) throw notFound('Item not found.');
+        return { where: { ...base, id: request.itemId! }, label: item.headword };
+      }
+      case 'due':
+        return {
+          where: { ...base, userStates: { some: { userId, status: { not: 'NEW' }, due: { lte: now } } } },
+          label: 'Due for review',
+        };
+      case 'mistakes':
+        return {
+          where: { ...base, mistakes: { some: { userId, status: { in: ['ACTIVE', 'IMPROVING'] } } } },
+          label: 'My mistakes',
+        };
+      case 'weak':
+        return { where: { ...base, userStates: { some: { userId, isWeak: true } } }, label: 'Weak items' };
+      default:
+        return { where: base, label: 'Your whole library' };
+    }
   }
 }

@@ -22,6 +22,8 @@ const result = (verdict: AttemptResult['verdict'], score: number): AttemptResult
   explanationFa: null,
   errorCodes: [],
   detail: {},
+  xp: 0,
+  itemUpdates: [],
 });
 
 const run = (state: PlayerState, ...actions: PlayerAction[]) => actions.reduce(playerReducer, state);

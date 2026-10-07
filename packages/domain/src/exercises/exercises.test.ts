@@ -8,7 +8,7 @@ import {
 } from '@coach/contracts';
 import { evaluateRule } from './evaluate.js';
 import { compareAnswer, editDistance, normalizeAnswer } from './normalize.js';
-import { chooseExercise, levelForHistory } from './selection.js';
+import { chooseExercise } from './selection.js';
 import {
   findInSentence,
   generateMatching,
@@ -410,21 +410,6 @@ describe('evaluateRule', () => {
 });
 
 // ───────────── selection ─────────────
-
-describe('levelForHistory', () => {
-  it('gets harder as an item is answered correctly more often', () => {
-    expect([0, 1, 2, 3, 4, 6, 7, 20].map(levelForHistory)).toEqual([
-      'RECOGNITION',
-      'RECOGNITION',
-      'RECALL',
-      'RECALL',
-      'CONTEXT',
-      'CONTEXT',
-      'PRODUCTION',
-      'PRODUCTION',
-    ]);
-  });
-});
 
 describe('chooseExercise', () => {
   const make = (level: ExerciseDraft['level'], format: ExerciseFormat) => ({ level, format });

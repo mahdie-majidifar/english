@@ -4,9 +4,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AttemptResult, PracticeRun } from '@coach/contracts';
 import { api } from '@/lib/api';
 import { catalogKeys } from '@/features/catalog/hooks';
+import { dashboardKey } from '@/features/dashboard/hooks';
 
 export interface PracticeParams {
-  scope: 'current' | 'all' | 'lesson' | 'type' | 'item';
+  scope: 'current' | 'all' | 'lesson' | 'type' | 'item' | 'due' | 'mistakes' | 'weak';
   lessonId?: string;
   itemId?: string;
   type?: string;
@@ -25,11 +26,19 @@ export interface AttemptInput {
   exerciseId: string;
   response: unknown;
   durationMs?: number;
+  /** Set when the answer belongs to a slot of the daily session. */
+  sessionItemId?: string;
 }
 
 export function useSubmitAttempt() {
+  const client = useQueryClient();
   return useMutation({
     mutationFn: (body: AttemptInput) => api<AttemptResult>('/attempts', { method: 'POST', body }),
+    // Every answer moves XP, reviews and mistakes, so the home screen must not show stale numbers.
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: dashboardKey });
+      void client.invalidateQueries({ queryKey: ['mistakes'] });
+    },
   });
 }
 

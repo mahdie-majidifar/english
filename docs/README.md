@@ -26,8 +26,20 @@
 | ۱ — کتاب و محتوا | ✅ | Book/Unit/Lesson، درس فعلی، Library با ۹ نوع آیتم، جستجو، افزودن/ویرایش/حذف |
 | ۲ — معلم و AI | ✅ | یادداشت و فایل معلم، استخراج، لایه‌ی AI، بررسی پیش‌نویس، commit |
 | ۳ — موتور تمرین | ✅ | ۱۰ فرمت تمرین، تولید خودکار بدون AI، pool، ارزیابی با قانون و با AI، پلیر تمرین، صفحه‌ی Practice |
-| ۴ — حلقه‌ی یادگیری | ⏭️ | FSRS، Mistake Bank، Learning Engine، جلسه‌ی روزانه، Dashboard واقعی |
+| ۴ — حلقه‌ی یادگیری | ✅ | FSRS (`ts-fsrs`)، Mistake Bank، Learning Engine (planner قطعی)، جلسه‌ی روزانه‌ی ذخیره‌شده، XP/Streak/DailyActivity، Dashboard واقعی، صفحه‌ی My mistakes |
 | ۵ تا ۷ | ⏭️ | Quiz/Exam، Progress و Gamification، پایدارسازی |
+
+### تصمیم‌های فاز ۴
+
+| موضوع | پلن | آنچه ساخته شد | دلیل |
+|---|---|---|---|
+| ارتباط بخش‌ها | domain event | `AttemptsService` در یک transaction مستقیم `LearningService` و `ProgressService` را صدا می‌زند | ساده‌تر؛ یا همه ثبت میشه یا هیچ‌کدام |
+| FSRS | — | فقط **اولین پاسخ هر روز (به وقت کاربر)** زمان‌بندی را عوض می‌کند؛ `enable_short_term=false`، `enable_fuzz=false` | تکرار همان آیتم در یک روز نباید زمان مرور را خراب کند؛ تست‌پذیر |
+| اولویت Mistake | ذخیره در DB | موقع خواندن حساب میشه (شدت × log تعداد × نیمه‌عمر ۱۴ روز) | با گذر زمان خودکار کم میشه، بدون job |
+| حل شدن Mistake | — | ۳ روز متفاوت پاسخ درست | قانون ساده و قابل‌توضیح |
+| جلسه‌ی اضافه | — | `POST /daily-sessions` با `{extra:true}` بعد از اتمام جلسه‌ی امروز | «Practice more» بدون خراب شدن جلسه‌ی اصلی |
+| ماژول‌ها | — | `learning`، `progress`، `sessions`، `dashboard` جدا | هر کدام یک مسئولیت |
+| Planner | AI یا scoring | scoring قطعی (بدون AI) با وزن‌های ثابت و دلیل انتخاب برای هر تمرین | قابل‌توضیح و رایگان |
 
 ## تغییرها نسبت به TECHNICAL_PLAN.md
 
@@ -45,7 +57,7 @@
 | مدل AI | — | `AI_MODEL_PARSE` در env (پیش‌فرض `gpt-4o-mini`) | نام مدل در کد نیست؛ هر وقت خواستید عوض کنید |
 | فایل PDF اسکن‌شده | vision برای PDF | پیام «به‌صورت عکس آپلود کن» | بدون ابزار OCR؛ عکس مستقیم به مدل vision میره |
 | پر کردن pool تمرین | job پس‌زمینه بعد از commit | تمرین‌های built-in موقع ساخت Practice تولید و ذخیره میشن (قطعی، بدون تکرار)؛ تمرین‌های AI فقط با دکمه‌ی «Ask the coach for more» | سریع و بدون هزینه؛ کنترل کامل مصرف AI |
-| سطح تمرین | adaptive کامل (FSRS + mastery) | قانون ساده: سطح از تعداد پاسخ‌های درست آیتم میاد (`levelForHistory`) | فاز ۴ جایگزینش می‌کنه |
+| سطح تمرین | adaptive کامل (FSRS + mastery) | ✅ فاز ۴: mastery + `adaptLevel` (۳ درست = یک سطح بالاتر، ۲ غلط = یک سطح پایین‌تر)؛ `levelForHistory` حذف شد | — |
 | خطای AI موقع ارزیابی | `evaluationPending` + job | پیام خطا، چیزی ثبت نمیشه، با همان `clientAttemptId` دوباره امتحان می‌شه | ساده‌تر و بدون وضعیت نیمه‌کاره |
 | کدهای نوع خطا | جدول `ErrorType` در دیتابیس | فهرست ثابت در `packages/contracts` (`ERROR_TYPES`) | تغییرش با code review انجام میشه؛ جدول در فاز ۴ اگه لازم شد |
 | فرمت‌های تمرین | ۱۲ فرمت | ۱۰ فرمت. `error_correction` و `choose_distinction` (distinction به‌شکل multiple_choice ساخته میشه) | error_correction نیاز به AI و UI انتخاب کلمه دارد |

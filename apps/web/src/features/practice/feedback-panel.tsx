@@ -47,7 +47,14 @@ export function FeedbackPanel({ result, isLast, onContinue }: FeedbackPanelProps
         </span>
 
         <div className="min-w-0 flex-1 space-y-1.5">
-          <p className={cn('font-heading text-xl font-extrabold tracking-tight', style.title)}>{title}</p>
+          <p className={cn('flex flex-wrap items-center gap-3 font-heading text-xl font-extrabold tracking-tight', style.title)}>
+            {title}
+            {result.xp > 0 && (
+              <span className="animate-[pop-in_380ms_ease-out] rounded-full bg-xp/20 px-3 py-0.5 text-base font-extrabold text-[#8a6500]">
+                +{result.xp} XP
+              </span>
+            )}
+          </p>
           {showAnswer && (
             <p className="whitespace-pre-line text-lg font-semibold">
               <span className="font-medium text-mute">Correct answer: </span>

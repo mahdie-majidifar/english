@@ -1,6 +1,6 @@
 'use client';
 
-import { BookOpen, Library, Plus } from 'lucide-react';
+import { BookOpen, Flag, Library, Plus, RotateCw, Target } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type CSSProperties } from 'react';
 import { ITEM_TYPE_META } from '@coach/contracts';
@@ -10,6 +10,7 @@ import { MODES } from '@/components/ui/skill-chip';
 import { cn } from '@/lib/cn';
 import { useCurrent } from '@/features/catalog/hooks';
 import { useItems } from '@/features/content/hooks';
+import { useDashboard } from '@/features/dashboard/hooks';
 import { TYPE_ORDER } from '@/features/library/type-ui';
 
 const COUNTS = [5, 10, 15];
@@ -17,11 +18,24 @@ const COUNTS = [5, 10, 15];
 export function PracticePage() {
   const current = useCurrent();
   const items = useItems({});
+  const dashboard = useDashboard();
   const [count, setCount] = useState(10);
 
   const counts = items.data?.pages[0]?.counts ?? {};
   const total = Object.values(counts).reduce((a, b) => a + (b ?? 0), 0);
   const href = (query: string) => `/practice/play?${query}&count=${count}`;
+
+  // Smart groups only appear when there is something in them.
+  const stats = dashboard.data;
+  const openMistakes = (stats?.mistakes.active ?? 0) + (stats?.mistakes.improving ?? 0);
+  const weak = stats?.weakAreas.reduce((n, a) => n + a.items.length, 0) ?? 0;
+  const focus = [
+    { scope: 'due', icon: RotateCw, tone: 'bg-brand-soft text-brand', title: 'Due for review', n: stats?.reviews.dueCount ?? 0, body: 'Items you are about to forget.' },
+    { scope: 'mistakes', icon: Flag, tone: 'bg-bad-soft text-bad-edge', title: 'My mistakes', n: openMistakes, body: 'Things you got wrong before.' },
+    { scope: 'weak', icon: Target, tone: 'bg-flame/15 text-[#b36b00]', title: 'Weak items', n: weak, body: 'Items you often miss.' },
+  ]
+    .filter((c) => c.n > 0)
+    .map((c) => ({ ...c, body: `${c.n} · ${c.body}` }));
 
   if (items.isPending || current.isPending) return <div className="h-96 animate-pulse rounded-card bg-subtle" aria-busy />;
 
@@ -94,6 +108,20 @@ export function PracticePage() {
             </Card>
           </Link>
         ) : null}
+
+        {focus.map((card) => (
+          <Link key={card.scope} href={href(`scope=${card.scope}`)} className="block focus-visible:outline-offset-4">
+            <Card interactive className="flex h-full items-center gap-4 p-5">
+              <span className={cn('grid size-12 shrink-0 place-items-center rounded-2xl', card.tone)}>
+                <card.icon className="size-6" />
+              </span>
+              <div>
+                <h2 className="font-heading text-xl font-extrabold tracking-tight">{card.title}</h2>
+                <p className="text-base text-mute">{card.body}</p>
+              </div>
+            </Card>
+          </Link>
+        ))}
 
         <Link href={href('scope=all')} className="block focus-visible:outline-offset-4">
           <Card interactive className="flex h-full items-center gap-4 p-5">

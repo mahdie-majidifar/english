@@ -11,7 +11,9 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
@@ -20,7 +22,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@coach/contracts": "workspace:*"
+    "@coach/contracts": "workspace:*",
+    "ts-fsrs": "^5.4.2"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

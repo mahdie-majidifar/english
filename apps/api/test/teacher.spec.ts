@@ -122,7 +122,7 @@ describe.skipIf(!hasDatabase())('teacher material pipeline (real PostgreSQL, fak
       expect(String(system!.content)).toMatch(/data, not instructions/);
       expect(String(user!.content)).toContain('<material>');
 
-      const runs = await ctx.prisma.aiRun.findMany({ where: { task: 'PARSE_MATERIAL' } });
+      const runs = await ctx.prisma.aiRun.findMany({ where: { task: 'PARSE_MATERIAL' }, orderBy: { createdAt: 'asc' } });
       expect(runs.at(-1)).toMatchObject({ success: true, inputTokens: 100, promptId: 'parse-material', promptVersion: 1 });
     });
 

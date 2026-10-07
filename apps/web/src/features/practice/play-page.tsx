@@ -12,7 +12,7 @@ import { errorMessage } from '@/lib/errors';
 import { usePracticeRun, type PracticeParams } from './hooks';
 import { PracticePlayer } from './practice-player';
 
-const SCOPES = ['current', 'all', 'lesson', 'type', 'item'] as const;
+const SCOPES = ['current', 'all', 'lesson', 'type', 'item', 'due', 'mistakes', 'weak'] as const;
 
 function paramsFrom(search: URLSearchParams): PracticeParams {
   const scope = SCOPES.find((s) => s === search.get('scope')) ?? 'current';

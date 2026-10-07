@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ExerciseLevelSchema, SkillAreaSchema, type ExerciseLevel } from './enums.js';
+import { ExerciseLevelSchema, SkillAreaSchema, type ExerciseLevel, type LearningStatus } from './enums.js';
 
 /**
  * Exercise formats. Each one is defined once, here: what the learner sees (content), what only the
@@ -344,7 +344,7 @@ export interface ClientExercise {
   estimatedSeconds: number;
 }
 
-export const PRACTICE_SCOPES = ['current', 'all', 'lesson', 'type', 'item'] as const;
+export const PRACTICE_SCOPES = ['current', 'all', 'lesson', 'type', 'item', 'due', 'mistakes', 'weak'] as const;
 export const PracticeRequestSchema = z
   .object({
     scope: z.enum(PRACTICE_SCOPES).default('current'),
@@ -374,8 +374,20 @@ export const AttemptRequestSchema = z.object({
   response: z.unknown(),
   durationMs: z.number().int().min(0).max(3_600_000).optional(),
   hintsUsed: z.number().int().min(0).max(10).default(0),
+  /** Set when the answer belongs to a slot of the daily session. */
+  sessionItemId: z.uuid().optional(),
 });
 export type AttemptRequest = z.infer<typeof AttemptRequestSchema>;
+
+/** How an answer changed what the learner knows about one item. */
+export interface ItemUpdate {
+  itemId: string;
+  status: LearningStatus;
+  /** 0..1 */
+  mastery: number;
+  /** When the item is next due for review (ISO date), if scheduled. */
+  due: string | null;
+}
 
 export interface AttemptResult {
   attemptId: string;
@@ -386,4 +398,7 @@ export interface AttemptResult {
   explanationFa: string | null;
   errorCodes: ErrorTypeCode[];
   detail: Record<string, unknown>;
+  /** XP earned by this answer. */
+  xp: number;
+  itemUpdates: ItemUpdate[];
 }

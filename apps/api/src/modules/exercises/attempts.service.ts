@@ -5,16 +5,23 @@ import {
   type AttemptResult,
   type Evaluation,
   type ExerciseFormat,
+  type ExerciseLevel,
+  type ItemUpdate,
   type SolutionOf,
 } from '@coach/contracts';
-import { evaluateRule } from '@coach/domain';
+import { evaluateRule, toLocalDate, xpForAttempt } from '@coach/domain';
 import { DomainError, notFound } from '../../core/http/domain-error.js';
 import { isUniqueViolation } from '../../core/prisma/errors.js';
 import { PrismaService } from '../../core/prisma/prisma.service.js';
 import { Prisma, type ExerciseAttempt } from '../../generated/prisma/client.js';
 import { AnswerEvaluatorService } from '../ai/answer-evaluator.service.js';
+import { LearningService } from '../learning/learning.service.js';
+import { ProgressService } from '../progress/progress.service.js';
 
-function toResult(attemptId: string, e: Omit<Evaluation, 'needsAi'>): AttemptResult {
+/** What is stored with an attempt and returned for it: the evaluation plus what it earned and changed. */
+type StoredResult = Omit<Evaluation, 'needsAi'> & { xp: number; itemUpdates: ItemUpdate[] };
+
+function toResult(attemptId: string, e: StoredResult): AttemptResult {
   return {
     attemptId,
     verdict: e.verdict,
@@ -24,6 +31,8 @@ function toResult(attemptId: string, e: Omit<Evaluation, 'needsAi'>): AttemptRes
     explanationFa: e.explanationFa,
     errorCodes: e.errorCodes,
     detail: e.detail,
+    xp: e.xp ?? 0,
+    itemUpdates: e.itemUpdates ?? [],
   };
 }
 
@@ -32,11 +41,16 @@ export class AttemptsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly evaluator: AnswerEvaluatorService,
+    private readonly learning: LearningService,
+    private readonly progress: ProgressService,
   ) {}
 
   /**
    * Checks an answer, records it, and returns the verdict. Sending the same attempt twice (a retry
    * after a dropped connection) returns the first result and records nothing new.
+   *
+   * Recording an answer also updates what the learner knows (review schedule, mastery, level),
+   * their mistakes, XP and daily activity, all in one transaction.
    */
   async submit(userId: string, request: AttemptRequest): Promise<AttemptResult> {
     const exercise = await this.prisma.exercise.findFirst({
@@ -48,6 +62,8 @@ export class AttemptsService {
 
     const prior = await this.prisma.exerciseAttempt.findUnique({ where: { id: request.clientAttemptId } });
     if (prior) return this.replay(userId, exercise.id, prior);
+
+    const slot = request.sessionItemId ? await this.requireOpenSlot(userId, request.sessionItemId, exercise.id) : null;
 
     const parsed = RESPONSE_SCHEMAS[format].safeParse(request.response);
     if (!parsed.success) {
@@ -73,32 +89,71 @@ export class AttemptsService {
       evaluatedBy = 'AI';
     }
 
-    const { needsAi: _needsAi, ...stored } = evaluation;
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { timezone: true } });
+    const now = new Date();
+    const localDate = toLocalDate(now, user.timezone);
+    const xp = xpForAttempt({ verdict: evaluation.verdict, level: exercise.level as ExerciseLevel });
+    const itemResults = exercise.items.map(({ itemId }) => ({
+      itemId,
+      ...this.resultForItem(format, exercise.solution, evaluation, itemId),
+    }));
+
     try {
-      const attempt = await this.prisma.exerciseAttempt.create({
-        data: {
-          id: request.clientAttemptId,
+      return await this.prisma.$transaction(async (tx) => {
+        const attemptId = request.clientAttemptId;
+        const learned = await this.learning.applyAttempt(tx, {
           userId,
-          exerciseId: exercise.id,
-          context: 'PRACTICE',
-          response: parsed.data as Prisma.InputJsonValue,
-          score: evaluation.score,
-          isCorrect: evaluation.isCorrect,
-          verdict: evaluation.verdict,
-          evaluation: stored as unknown as Prisma.InputJsonValue,
-          evaluatedBy,
-          durationMs: request.durationMs,
+          now,
+          localDate,
+          attemptId,
+          format,
+          level: exercise.level as ExerciseLevel,
+          estimatedSeconds: exercise.estimatedSeconds,
+          content: exercise.content,
+          response: parsed.data,
+          evaluation,
           hintsUsed: request.hintsUsed,
-          items: {
-            create: exercise.items.map(({ itemId }) => ({
-              itemId,
-              ...this.resultForItem(format, exercise.solution, evaluation, itemId),
-            })),
+          durationMs: request.durationMs,
+          items: itemResults,
+        });
+        await this.progress.recordAttempt(tx, {
+          userId,
+          localDate,
+          attemptId,
+          xp,
+          durationMs: request.durationMs,
+          isCorrect: evaluation.isCorrect,
+        });
+
+        const { needsAi: _needsAi, ...base } = evaluation;
+        const stored: StoredResult = { ...base, xp, itemUpdates: learned.itemUpdates };
+        await tx.exerciseAttempt.create({
+          data: {
+            id: attemptId,
+            userId,
+            exerciseId: exercise.id,
+            context: slot ? 'DAILY_SESSION' : 'PRACTICE',
+            sessionItemId: slot?.id,
+            response: parsed.data as Prisma.InputJsonValue,
+            score: evaluation.score,
+            isCorrect: evaluation.isCorrect,
+            verdict: evaluation.verdict,
+            evaluation: stored as unknown as Prisma.InputJsonValue,
+            evaluatedBy,
+            durationMs: request.durationMs,
+            hintsUsed: request.hintsUsed,
+            createdAt: now,
+            items: { create: itemResults },
           },
-        },
-      });
-      return toResult(attempt.id, stored);
-    } catch (error) {
+        });
+        if (slot) {
+          await tx.dailySession.update({
+            where: { id: slot.sessionId },
+            data: { status: 'IN_PROGRESS', startedAt: slot.startedAt ?? now },
+          });
+        }
+        return toResult(attemptId, stored);
+      });    } catch (error) {
       // The same attempt arrived twice at once; the other request won.
       if (isUniqueViolation(error)) {
         const winner = await this.prisma.exerciseAttempt.findUnique({ where: { id: request.clientAttemptId } });
@@ -108,11 +163,26 @@ export class AttemptsService {
     }
   }
 
+  /** The slot must belong to the learner's own, unfinished session, and be for this very exercise. */
+  private async requireOpenSlot(userId: string, sessionItemId: string, exerciseId: string) {
+    const slot = await this.prisma.dailySessionItem.findFirst({
+      where: { id: sessionItemId, exerciseId, session: { userId } },
+      include: { session: { select: { id: true, status: true, startedAt: true } } },
+    });
+    if (!slot) throw notFound('Session exercise not found.');
+    if (slot.session.status === 'COMPLETED') {
+      throw new DomainError('CONFLICT', 409, 'This session is already finished.');
+    }
+    const answered = await this.prisma.exerciseAttempt.findUnique({ where: { sessionItemId: slot.id }, select: { id: true } });
+    if (answered) throw new DomainError('CONFLICT', 409, 'This exercise was already answered in the session.');
+    return { id: slot.id, sessionId: slot.session.id, startedAt: slot.session.startedAt };
+  }
+
   private replay(userId: string, exerciseId: string, prior: ExerciseAttempt): AttemptResult {
     if (prior.userId !== userId || prior.exerciseId !== exerciseId) {
       throw new DomainError('CONFLICT', 409, 'This attempt id was already used.');
     }
-    return toResult(prior.id, prior.evaluation as unknown as Omit<Evaluation, 'needsAi'>);
+    return toResult(prior.id, prior.evaluation as unknown as StoredResult);
   }
 
   /** A matching exercise covers several items: each one is judged on its own pair. */

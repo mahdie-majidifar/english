@@ -61,6 +61,7 @@ pnpm db:seed
 - ✅ **فاز ۱:** کتاب‌ها، unit و درس‌ها (با paste فهرست کتاب)، درس فعلی، Library، جستجو
 - ✅ **فاز ۲:** جلسه‌ی معلم، یادداشت و فایل (PDF، Word، عکس، متن)، تحلیل با AI، بررسی پیش‌نویس، ذخیره
 - ✅ **فاز ۳:** موتور تمرین (۱۰ فرمت)، صفحه‌ی Practice، پلیر تمرین با فیدبک، جمع‌بندی، تمرین‌های اضافه با AI
-- ⏭️ فاز ۴ تا ۷: جلسه‌ی روزانه و SRS و Mistake Bank، Quiz/Exam، Progress و Gamification
+- ✅ **فاز ۴:** جلسه‌ی روزانه‌ی شخصی‌سازی‌شده، SRS (FSRS)، Mistake Bank، XP و Streak، Dashboard واقعی
+- ⏭️ فاز ۵ تا ۷: Quiz/Exam، Progress و Gamification کامل، پایدارسازی
 
 جزئیات در [docs/README.md](docs/README.md) و [docs/TECHNICAL_PLAN.md](docs/TECHNICAL_PLAN.md) §۲۶.
