@@ -27,7 +27,8 @@
 | ۲ — معلم و AI | ✅ | یادداشت و فایل معلم، استخراج، لایه‌ی AI، بررسی پیش‌نویس، commit |
 | ۳ — موتور تمرین | ✅ | ۱۰ فرمت تمرین، تولید خودکار بدون AI، pool، ارزیابی با قانون و با AI، پلیر تمرین، صفحه‌ی Practice |
 | ۴ — حلقه‌ی یادگیری | ✅ | FSRS (`ts-fsrs`)، Mistake Bank، Learning Engine (planner قطعی)، جلسه‌ی روزانه‌ی ذخیره‌شده، XP/Streak/DailyActivity، Dashboard واقعی، صفحه‌ی My mistakes |
-| ۵ تا ۷ | ⏭️ | Quiz/Exam، Progress و Gamification، پایدارسازی |
+| ۵ — Quiz و Exam | ✅ | ماژول `assessments`، ۴ preset برای Quiz و ۴ برای Exam، تایمر سمت سرور، Quiz با فیدبک فوری و Exam بدون فیدبک تا پایان، نمره‌ی کلی و به‌تفکیک skill، صفحه‌ی review، پیشنهاد Quiz/Exam |
+| ۶ و ۷ | ⏭️ | Progress و Gamification کامل، پایدارسازی |
 
 ### تصمیم‌های فاز ۴
 
@@ -40,6 +41,20 @@
 | جلسه‌ی اضافه | — | `POST /daily-sessions` با `{extra:true}` بعد از اتمام جلسه‌ی امروز | «Practice more» بدون خراب شدن جلسه‌ی اصلی |
 | ماژول‌ها | — | `learning`، `progress`، `sessions`، `dashboard` جدا | هر کدام یک مسئولیت |
 | Planner | AI یا scoring | scoring قطعی (بدون AI) با وزن‌های ثابت و دلیل انتخاب برای هر تمرین | قابل‌توضیح و رایگان |
+
+### تصمیم‌های فاز ۵
+
+| موضوع | پلن | آنچه ساخته شد | دلیل |
+|---|---|---|---|
+| وضعیت‌های Assessment | `GENERATING READY IN_PROGRESS SUBMITTED GRADED EXPIRED` | فقط `READY IN_PROGRESS GRADED` | سؤال‌ها موقع ساخت انتخاب می‌شن و نمره‌دهی با قانون و آنی است؛ تمام‌شدن زمان هم با اولین درخواست بعدی به‌صورت خودکار تحویل می‌شه |
+| سؤال‌های AI-graded | grading async | `free_production` در Quiz/Exam نمی‌آید | نمره‌دهی کاملاً قانون‌محور و سریع می‌ماند؛ بعداً با grading async اضافه میشه |
+| جواب داخل Quiz/Exam | XP هر جواب | هر جواب XP ندارد؛ XP از نمره میاد (Quiz = score×50، Exam = score×100) | ضد farming و دوبل‌شماری |
+| ذخیره‌ی جواب Exam | `ExerciseAttempt` فوری | جواب‌ها در `AssessmentQuestion.response` می‌مونن و موقع تحویل یکجا نمره می‌گیرن | تا آخر امتحان هیچ فیدبکی نباید لو بره، و جواب قابل تغییر باشه |
+| شناسه‌ی Attempt | uuid کلاینت | شناسه‌ی خود سؤال | تحویل دوباره یا retry هیچ جوابی را دوبار ثبت نمی‌کند |
+| وزن Exam در mastery | یک امتیاز اضافه در ارتقای سطح | فعلاً مثل بقیه | موکول شد (باید `adaptLevel` وزن بگیرد) |
+| Presetها | Unit/Topic/Grammar/Vocabulary/Weekly/Monthly/Boss | Quiz: درس، unit، نقاط ضعف، ۷ روز اخیر. Exam: درس، unit، ۷ و ۳۰ روز اخیر | Topic/Grammar/Vocabulary و Boss Quiz به فاز ۶ |
+| زمان | — | با کمتر بودن سؤال‌ها، زمان متناسب کم میشه (حداقل ۳ دقیقه)؛ ساعت سرور حاکم است و ۳۰ ثانیه grace دارد | شبکه‌ی کند نباید جواب آخر را بسوزاند |
+| بازگشت به سؤال قبلی | — | ندارد؛ Skip هست ولی برگشت نه | ساده‌تر؛ موکول شد |
 
 ## تغییرها نسبت به TECHNICAL_PLAN.md
 

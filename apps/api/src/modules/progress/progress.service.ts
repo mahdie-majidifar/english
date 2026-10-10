@@ -63,6 +63,34 @@ export class ProgressService {
     await this.checkGoal(tx, input.userId, input.localDate);
   }
 
+  /**
+   * XP for a graded quiz or exam. Time and answers were already counted answer by answer; this adds
+   * the score-based award, once. Returns what was paid now (0 on a repeat).
+   */
+  async recordAssessment(
+    tx: Tx,
+    input: { userId: string; localDate: string; assessmentId: string; kind: 'QUIZ' | 'EXAM'; xp: number },
+  ): Promise<number> {
+    const awarded = await tx.xpEvent.createMany({
+      data: [{ userId: input.userId, amount: input.xp, reason: input.kind, refId: input.assessmentId }],
+      skipDuplicates: true,
+    });
+    if (awarded.count === 0) return 0;
+
+    await tx.dailyActivity.upsert({
+      where: { userId_localDate: { userId: input.userId, localDate: toDate(input.localDate) } },
+      create: { userId: input.userId, localDate: toDate(input.localDate), xp: input.xp },
+      update: { xp: { increment: input.xp } },
+    });
+    await tx.userGamification.upsert({
+      where: { userId: input.userId },
+      create: { userId: input.userId, totalXp: input.xp },
+      update: { totalXp: { increment: input.xp } },
+    });
+    const goalXp = await this.checkGoal(tx, input.userId, input.localDate);
+    return input.xp + goalXp;
+  }
+
   /** The completion bonus. Completing a session always meets the daily goal. */
   async completeSession(
     tx: Tx,

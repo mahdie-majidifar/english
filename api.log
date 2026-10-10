@@ -1,0 +1,87 @@
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [NestFactory] Starting Nest application...
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] ConfigModule dependencies initialized +24ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] ThrottlerModule dependencies initialized +6ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] PrismaModule dependencies initialized +0ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] StorageModule dependencies initialized +1ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] ProgressModule dependencies initialized +0ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] JwtModule dependencies initialized +1ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] AiModule dependencies initialized +0ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] UsersModule dependencies initialized +1ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] CatalogModule dependencies initialized +0ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] ContentModule dependencies initialized +0ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] LearningModule dependencies initialized +1ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] AppModule dependencies initialized +0ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] AuthModule dependencies initialized +1ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] ExercisesModule dependencies initialized +0ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] SessionsModule dependencies initialized +1ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] AssessmentsModule dependencies initialized +0ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] TeacherModule dependencies initialized +0ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [InstanceLoader] DashboardModule dependencies initialized +0ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [RoutesResolver] HealthController {/api/v1/health}: +8ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [RouterExplorer] Mapped {/api/v1/health, GET} route +5ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [RoutesResolver] AuthController {/api/v1/auth}: +0ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [RouterExplorer] Mapped {/api/v1/auth/login, POST} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:12 PM     LOG [RouterExplorer] Mapped {/api/v1/auth/refresh, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/auth/logout, POST} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/auth/me, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RoutesResolver] UsersController {/api/v1/me/profile}: +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/me/profile, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/me/profile, PATCH} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RoutesResolver] CatalogController {/api/v1}: +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/books, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/books, POST} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/books/:bookId, GET} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/books/:bookId, PATCH} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/books/:bookId, DELETE} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/books/:bookId/import-structure, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/books/:bookId/units, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/units/:unitId, PATCH} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/units/:unitId, DELETE} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/units/:unitId/lessons, POST} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/lessons/:lessonId, PATCH} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/lessons/:lessonId, DELETE} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/me/current, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/me/current-lesson, PUT} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RoutesResolver] ContentController {/api/v1}: +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/items, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/items, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/items/:itemId, GET} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/items/:itemId, PATCH} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/items/:itemId, DELETE} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/search, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RoutesResolver] TeacherController {/api/v1}: +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/teacher-sessions, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/teacher-sessions, POST} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/teacher-sessions/:sessionId, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/teacher-sessions/:sessionId, DELETE} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/teacher-sessions/:sessionId/materials/text, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/teacher-sessions/:sessionId/materials/file, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/teacher-materials/:materialId, GET} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/teacher-materials/:materialId/file, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/teacher-materials/:materialId/reparse, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/teacher-materials/:materialId/commit, POST} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/teacher-materials/:materialId/discard, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RoutesResolver] MistakesController {/api/v1/mistakes}: +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/mistakes, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/mistakes/summary, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RoutesResolver] ExercisesController {/api/v1}: +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/practice, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/attempts, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/items/:itemId/generate-exercises, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RoutesResolver] SessionsController {/api/v1/daily-sessions}: +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/daily-sessions, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/daily-sessions/today, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/daily-sessions/:sessionId, GET} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/daily-sessions/:sessionId/complete, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RoutesResolver] DashboardController {/api/v1/dashboard}: +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/dashboard, GET} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RoutesResolver] AssessmentsController {/api/v1/assessments}: +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/assessments, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/assessments, GET} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/assessments/:id, GET} route +3ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/assessments/:id/start, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/assessments/:id/questions/:questionId/answer, PUT} route +1ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/assessments/:id/submit, POST} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [RouterExplorer] Mapped {/api/v1/assessments/:id/result, GET} route +0ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [NestApplication] Nest application successfully started +128ms
+[Nest] 8016  - 10/10/2026, 12:41:13 PM     LOG [Bootstrap] API listening on http://localhost:4000/api/v1

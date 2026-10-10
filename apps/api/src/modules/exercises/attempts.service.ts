@@ -36,6 +36,13 @@ function toResult(attemptId: string, e: StoredResult): AttemptResult {
   };
 }
 
+/** Set when the answer is part of a quiz or an exam rather than practice or the daily session. */
+export interface AssessmentContext {
+  /** Also the attempt's id, so handing an exam in twice can never record an answer twice. */
+  questionId: string;
+  kind: 'QUIZ' | 'EXAM';
+}
+
 @Injectable()
 export class AttemptsService {
   constructor(
@@ -52,7 +59,7 @@ export class AttemptsService {
    * Recording an answer also updates what the learner knows (review schedule, mastery, level),
    * their mistakes, XP and daily activity, all in one transaction.
    */
-  async submit(userId: string, request: AttemptRequest): Promise<AttemptResult> {
+  async submit(userId: string, request: AttemptRequest, assessment?: AssessmentContext): Promise<AttemptResult> {
     const exercise = await this.prisma.exercise.findFirst({
       where: { id: request.exerciseId, ownerId: userId, status: 'ACTIVE' },
       include: { items: { select: { itemId: true } } },
@@ -63,7 +70,7 @@ export class AttemptsService {
     const prior = await this.prisma.exerciseAttempt.findUnique({ where: { id: request.clientAttemptId } });
     if (prior) return this.replay(userId, exercise.id, prior);
 
-    const slot = request.sessionItemId ? await this.requireOpenSlot(userId, request.sessionItemId, exercise.id) : null;
+    const slot = !assessment && request.sessionItemId ? await this.requireOpenSlot(userId, request.sessionItemId, exercise.id) : null;
 
     const parsed = RESPONSE_SCHEMAS[format].safeParse(request.response);
     if (!parsed.success) {
@@ -92,7 +99,8 @@ export class AttemptsService {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { timezone: true } });
     const now = new Date();
     const localDate = toLocalDate(now, user.timezone);
-    const xp = xpForAttempt({ verdict: evaluation.verdict, level: exercise.level as ExerciseLevel });
+    // Inside a quiz or exam the XP comes from the final score, not from each answer.
+    const xp = assessment ? 0 : xpForAttempt({ verdict: evaluation.verdict, level: exercise.level as ExerciseLevel });
     const itemResults = exercise.items.map(({ itemId }) => ({
       itemId,
       ...this.resultForItem(format, exercise.solution, evaluation, itemId),
@@ -132,8 +140,9 @@ export class AttemptsService {
             id: attemptId,
             userId,
             exerciseId: exercise.id,
-            context: slot ? 'DAILY_SESSION' : 'PRACTICE',
+            context: assessment ? assessment.kind : slot ? 'DAILY_SESSION' : 'PRACTICE',
             sessionItemId: slot?.id,
+            assessmentQuestionId: assessment?.questionId,
             response: parsed.data as Prisma.InputJsonValue,
             score: evaluation.score,
             isCorrect: evaluation.isCorrect,
@@ -153,7 +162,8 @@ export class AttemptsService {
           });
         }
         return toResult(attemptId, stored);
-      });    } catch (error) {
+      });
+    } catch (error) {
       // The same attempt arrived twice at once; the other request won.
       if (isUniqueViolation(error)) {
         const winner = await this.prisma.exerciseAttempt.findUnique({ where: { id: request.clientAttemptId } });

@@ -1,11 +1,12 @@
 'use client';
 
-import { HelpCircle, X } from 'lucide-react';
+import { Clock, HelpCircle, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useReducer, useRef, useState, type ReactNode } from 'react';
 import {
   BLOCK_LABELS,
   REASON_LABELS,
+  type AttemptResult,
   type ClientExercise,
   type ExerciseFormat,
   type SelectionReason,
@@ -45,7 +46,74 @@ export type PlayableExercise = ClientExercise & {
   sessionItemId?: string;
   block?: SessionBlock;
   reason?: SelectionReason;
+  /** Set when the exercise is a question of a quiz or an exam. */
+  assessmentQuestionId?: string;
 };
+
+/** What an exam gets back for an answer: nothing to show, just "kept". Never displayed. */
+const KEPT: AttemptResult = {
+  attemptId: '',
+  verdict: 'correct',
+  isCorrect: true,
+  score: 0,
+  correctAnswerText: null,
+  explanationFa: null,
+  errorCodes: [],
+  detail: {},
+  xp: 0,
+  itemUpdates: [],
+};
+
+/** Turns the player into a quiz or exam player: answers go to the assessment, and a clock runs. */
+export interface AssessmentMode {
+  /** Sends one answer. A quiz returns the checked result; an exam returns null. */
+  send: (input: { exercise: PlayableExercise; value: unknown; durationMs: number }) => Promise<AttemptResult | null>;
+  /** An exam says nothing about an answer until the end. */
+  hideFeedback: boolean;
+  /** Seconds left when the player opens, or null for no clock. */
+  secondsLeft: number | null;
+  /** Called once when the clock runs out. */
+  onTimeUp: () => void;
+  noun: 'quiz' | 'exam';
+}
+
+const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+
+/** Counts down to a moment fixed when it first renders, so re-renders cannot add or lose time. */
+function Countdown({ seconds, onTimeUp }: { seconds: number; onTimeUp: () => void }) {
+  const deadline = useRef(Date.now() + seconds * 1000);
+  const [left, setLeft] = useState(seconds);
+  const fired = useRef(false);
+  const callback = useRef(onTimeUp);
+  callback.current = onTimeUp;
+
+  useEffect(() => {
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000));
+      setLeft(remaining);
+      if (remaining === 0 && !fired.current) {
+        fired.current = true;
+        callback.current();
+      }
+    };
+    tick();
+    const t = setInterval(tick, 500);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <span
+      role="timer"
+      aria-label={`${clock(left)} left`}
+      className={cn(
+        'flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-heading text-base font-extrabold tabular-nums',
+        left <= 20 ? 'animate-pulse bg-bad-soft text-bad-edge' : left <= 60 ? 'bg-flame/15 text-[#b36b00]' : 'bg-subtle text-ink',
+      )}
+    >
+      <Clock className="size-4" /> {clock(left)}
+    </span>
+  );
+}
 
 interface PracticePlayerProps {
   run: { exercises: PlayableExercise[] };
@@ -54,9 +122,11 @@ interface PracticePlayerProps {
   backHref: string;
   /** Replaces the default summary (the daily session shows XP and streak instead). */
   renderDone?: (ctx: { exercises: ClientExercise[]; steps: StepRecord[]; elapsedSeconds: number }) => ReactNode;
+  /** Set for a quiz or an exam. */
+  assessment?: AssessmentMode;
 }
 
-export function PracticePlayer({ run, onAgain, backHref, renderDone }: PracticePlayerProps) {
+export function PracticePlayer({ run, onAgain, backHref, renderDone, assessment }: PracticePlayerProps) {
   const router = useRouter();
   const submitAttempt = useSubmitAttempt();
   const startedAt = useRef(Date.now());
@@ -92,19 +162,22 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone }: PracticeP
       dispatch({ type: 'change', value });
       dispatch({ type: 'submit' });
       try {
-        const result = await submitAttempt.mutateAsync({
-          clientAttemptId: state.attemptId,
-          exerciseId: exercise.id,
-          response: value,
-          durationMs: Date.now() - state.shownAt,
-          sessionItemId: (exercise as PlayableExercise).sessionItemId,
-        });
+        const durationMs = Date.now() - state.shownAt;
+        const result = assessment
+          ? ((await assessment.send({ exercise: exercise as PlayableExercise, value, durationMs })) ?? KEPT)
+          : await submitAttempt.mutateAsync({
+              clientAttemptId: state.attemptId,
+              exerciseId: exercise.id,
+              response: value,
+              durationMs,
+              sessionItemId: (exercise as PlayableExercise).sessionItemId,
+            });
         dispatch({ type: 'submitted', result });
       } catch (error) {
         dispatch({ type: 'failed', message: errorMessage(error, 'We could not check that answer. Please try again.') });
       }
     },
-    [state.phase, state.attemptId, state.shownAt, exercise, submitAttempt],
+    [state.phase, state.attemptId, state.shownAt, exercise, submitAttempt, assessment],
   );
 
   const goNext = useCallback(() => {
@@ -128,17 +201,24 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone }: PracticeP
     return () => clearTimeout(t);
   }, [state.phase, exercise?.format, goNext]);
 
+  // An exam never shows a verdict: once the answer is kept, go straight to the next question.
+  useEffect(() => {
+    if (state.phase !== 'feedback' || !assessment?.hideFeedback) return;
+    const t = setTimeout(goNext, 120);
+    return () => clearTimeout(t);
+  }, [state.phase, assessment?.hideFeedback, goNext]);
+
   // Enter checks (or continues). Inputs call `check` themselves, so typing is never interrupted.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Enter' || e.repeat || e.metaKey || e.ctrlKey || e.altKey || isTyping(e.target)) return;
       if (e.target instanceof HTMLElement && e.target.closest('button, a, summary')) return;
-      if (state.phase === 'feedback' && exercise?.format !== 'flashcard') goNext();
+      if (state.phase === 'feedback' && exercise?.format !== 'flashcard' && !assessment?.hideFeedback) goNext();
       else check();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [state.phase, exercise?.format, goNext, check]);
+  }, [state.phase, exercise?.format, assessment?.hideFeedback, goNext, check]);
 
   // Clock for the summary.
   useEffect(() => {
@@ -172,7 +252,7 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone }: PracticeP
           <button
             type="button"
             onClick={() => setConfirmExit(true)}
-            aria-label="Leave practice"
+            aria-label={assessment ? `Leave this ${assessment.noun}` : 'Leave practice'}
             className="grid size-10 shrink-0 place-items-center rounded-control text-mute transition-colors hover:bg-subtle hover:text-ink"
           >
             <X className="size-6" />
@@ -184,7 +264,9 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone }: PracticeP
               const tone = step
                 ? step.result === null
                   ? 'bg-line'
-                  : step.result.verdict === 'correct'
+                  : assessment?.hideFeedback
+                    ? 'bg-brand'
+                    : step.result.verdict === 'correct'
                     ? 'bg-good'
                     : step.result.verdict === 'almost'
                       ? 'bg-flame'
@@ -196,6 +278,7 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone }: PracticeP
             })}
           </div>
 
+          {assessment?.secondsLeft != null && <Countdown seconds={assessment.secondsLeft} onTimeUp={assessment.onTimeUp} />}
           <span className="w-12 shrink-0 text-right text-sm font-semibold text-mute">
             {state.index + 1}/{state.exercises.length}
           </span>
@@ -253,7 +336,7 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone }: PracticeP
       </main>
 
       <footer className="sticky bottom-0 z-10 border-t border-line bg-card/95 backdrop-blur">
-        {state.phase === 'feedback' && state.result && exercise.format !== 'flashcard' ? (
+        {state.phase === 'feedback' && state.result && exercise.format !== 'flashcard' && !assessment?.hideFeedback ? (
           <FeedbackPanel result={state.result} isLast={isLast} onContinue={goNext} />
         ) : (
           <div className="mx-auto max-w-2xl space-y-3 px-5 py-4">
@@ -274,7 +357,7 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone }: PracticeP
                 </p>
               ) : (
                 <Button size="lg" onClick={check} disabled={!ready} loading={checking} className="min-w-52">
-                  {ready || checking ? 'Check' : ui.notReadyLabel}
+                  {ready || checking ? (assessment?.hideFeedback ? 'Next' : 'Check') : ui.notReadyLabel}
                 </Button>
               )}
             </div>
@@ -286,8 +369,12 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone }: PracticeP
         open={confirmExit}
         onClose={() => setConfirmExit(false)}
         onConfirm={() => router.push(backHref)}
-        title="Leave this practice?"
-        description="Answers you already checked are saved. The rest of this set will be lost."
+        title={assessment ? `Leave this ${assessment.noun}?` : 'Leave this practice?'}
+        description={
+          assessment
+            ? 'Your answers so far are kept, but the clock keeps running. You can come back and continue until time is up.'
+            : 'Answers you already checked are saved. The rest of this set will be lost.'
+        }
         confirmLabel="Leave"
       />
     </div>

@@ -14,6 +14,7 @@ import {
 } from '@coach/contracts';
 import { Button, buttonClass } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { ScoreRing } from '@/components/ui/score-ring';
 import { Spark } from '@/components/ui/spark';
 import { cn } from '@/lib/cn';
 import { errorMessage } from '@/lib/errors';
@@ -34,38 +35,12 @@ const REASON_LINES: Record<SelectionReason, (n: number) => string> = {
   RECOVERY: (n) => `${n} to try again`,
 };
 
-function Ring({ value }: { value: number }) {
-  const r = 52;
-  const c = 2 * Math.PI * r;
-  const pct = Math.round(value * 100);
-  return (
-    <div className="relative size-36" role="img" aria-label={`${pct} percent correct`}>
-      <svg viewBox="0 0 120 120" className="size-full -rotate-90">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="var(--subtle)" strokeWidth="12" />
-        <circle
-          cx="60"
-          cy="60"
-          r={r}
-          fill="none"
-          stroke={pct >= 80 ? 'var(--good)' : 'var(--brand)'}
-          strokeWidth="12"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * (1 - value)}
-          style={{ transition: 'stroke-dashoffset 900ms cubic-bezier(.22,1,.36,1)' }}
-        />
-      </svg>
-      <span className="absolute inset-0 grid place-items-center font-heading text-3xl font-extrabold">{pct}%</span>
-    </div>
-  );
-}
-
 function ResultView({ result, onMore }: { result: SessionResultDto; onMore: () => void }) {
   const minutes = Math.max(1, Math.round(result.activeSeconds / 60));
   return (
     <div className="mx-auto w-full max-w-2xl space-y-8 px-5 py-10">
       <div className="flex flex-col items-center gap-4 text-center">
-        <Ring value={result.accuracy} />
+        <ScoreRing value={result.accuracy} />
         <div>
           <h1 className="font-heading text-4xl font-extrabold tracking-tight">Session complete!</h1>
           <p className="mt-2 text-lg text-mute">

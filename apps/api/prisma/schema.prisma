@@ -72,6 +72,7 @@ model User {
   dailyActivities   DailyActivity[]
   userGamifications UserGamification[]
   xpEvents          XpEvent[]
+  assessments       Assessment[]
 }
 
 model UserProfile {
@@ -403,7 +404,8 @@ model Exercise {
 
   items        ExerciseItem[]
   attempts     ExerciseAttempt[]
-  sessionItems DailySessionItem[]
+  sessionItems        DailySessionItem[]
+  assessmentQuestions AssessmentQuestion[]
 
   @@unique([ownerId, fingerprint])
   @@index([ownerId, status, level])
@@ -442,6 +444,10 @@ model ExerciseAttempt {
   /// Set when the answer was given as part of a daily session.
   sessionItemId String?           @unique @db.Uuid
   sessionItem   DailySessionItem? @relation(fields: [sessionItemId], references: [id], onDelete: SetNull)
+
+  /// Set when the answer was given inside a quiz or an exam.
+  assessmentQuestionId String?             @unique @db.Uuid
+  assessmentQuestion   AssessmentQuestion? @relation(fields: [assessmentQuestionId], references: [id], onDelete: SetNull)
 
   items AttemptItemResult[]
 
@@ -668,11 +674,79 @@ model XpEvent {
   userId    String   @db.Uuid
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount    Int
-  /// ATTEMPT, SESSION or GOAL
+  /// ATTEMPT, SESSION, GOAL, QUIZ or EXAM
   reason    String
   refId     String
   createdAt DateTime @default(now())
 
   @@unique([userId, reason, refId])
   @@index([userId, createdAt])
+}
+
+// ───────────────────────── Assessments (quiz and exam) ─────────────────────────
+
+enum AssessmentKind {
+  QUIZ
+  EXAM
+}
+
+enum AssessmentPreset {
+  LESSON
+  UNIT
+  WEAK_AREAS
+  WEEKLY
+  MONTHLY
+}
+
+/// Questions are chosen when the assessment is created, so there is no "generating" state.
+/// Marking is by rule and instant, so there is no "submitted but not graded" state either.
+enum AssessmentStatus {
+  READY
+  IN_PROGRESS
+  GRADED
+}
+
+model Assessment {
+  id           String           @id @default(uuid()) @db.Uuid
+  userId       String           @db.Uuid
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind         AssessmentKind
+  preset       AssessmentPreset
+  title        String
+  status       AssessmentStatus @default(READY)
+  timeLimitSec Int?
+  startedAt    DateTime?
+  /// The server stops taking answers here (time limit plus a short grace).
+  expiresAt    DateTime?
+  gradedAt     DateTime?
+  /// 0..1 over all questions.
+  score        Float?
+  xpEarned     Int              @default(0)
+  /// Per-skill scores, written when graded.
+  breakdown    Json?
+  createdAt    DateTime         @default(now())
+
+  questions AssessmentQuestion[]
+
+  @@index([userId, kind, createdAt])
+}
+
+/// One locked question. Later changes to the exercise pool never change an assessment.
+model AssessmentQuestion {
+  id           String     @id @default(uuid()) @db.Uuid
+  assessmentId String     @db.Uuid
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  position     Int
+  exerciseId   String     @db.Uuid
+  exercise     Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  skill        String
+  points       Float      @default(1)
+  /// An exam answer is kept here until the exam is handed in; a quiz answer is checked at once.
+  response     Json?
+  durationMs   Int?
+  answeredAt   DateTime?
+
+  attempt ExerciseAttempt?
+
+  @@unique([assessmentId, position])
 }

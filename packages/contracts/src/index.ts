@@ -7,3 +7,4 @@ export * from './content.js';
 export * from './teacher.js';
 export * from './exercises.js';
 export * from './learning.js';
+export * from './assessments.js';
