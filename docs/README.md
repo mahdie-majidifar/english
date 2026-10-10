@@ -28,7 +28,8 @@
 | ۳ — موتور تمرین | ✅ | ۱۰ فرمت تمرین، تولید خودکار بدون AI، pool، ارزیابی با قانون و با AI، پلیر تمرین، صفحه‌ی Practice |
 | ۴ — حلقه‌ی یادگیری | ✅ | FSRS (`ts-fsrs`)، Mistake Bank، Learning Engine (planner قطعی)، جلسه‌ی روزانه‌ی ذخیره‌شده، XP/Streak/DailyActivity، Dashboard واقعی، صفحه‌ی My mistakes |
 | ۵ — Quiz و Exam | ✅ | ماژول `assessments`، ۴ preset برای Quiz و ۴ برای Exam، تایمر سمت سرور، Quiz با فیدبک فوری و Exam بدون فیدبک تا پایان، نمره‌ی کلی و به‌تفکیک skill، صفحه‌ی review، پیشنهاد Quiz/Exam |
-| ۶ و ۷ | ⏭️ | Progress و Gamification کامل، پایدارسازی |
+| ۶ — Progress و Gamification | 🔄 | انجام‌شده: صفحه‌ی Progress (نمودار، مقایسه‌ی هفتگی، پیشرفت کتاب/یونیت)، ۱۸ Achievement. مانده: چالش‌ها، Boss Quiz، متن مربی AI |
+| ۷ — پایدارسازی | ⏭️ | |
 
 ### تصمیم‌های فاز ۴
 

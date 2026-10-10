@@ -5,7 +5,7 @@
 
 ## وضعیت یک‌خطی
 
-فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۳۷۷ تست). مرحله‌ی بعد: **فاز ۶** (Progress و Gamification).
+فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۴۰۰ تست؛ نیمه‌ی اول فاز ۶ هم تمام است: Progress و Achievements). مرحله‌ی بعد: بقیه‌ی فاز ۶ (چالش‌ها، Boss Quiz، متن مربی AI)، بعد فاز ۷ (پایدارسازی).
 
 ## فازها
 
@@ -18,7 +18,7 @@
 | ۴ حلقه‌ی یادگیری | ✅ | FSRS، Mistake Bank، جلسه‌ی روزانه، داشبورد |
 | ۵ Quiz و Exam | ✅ | |
 | **درخواست‌های جدید (بسته‌ی A)** | ✅ | جدول پایین (فقط مرور ظاهر بقیه‌ی صفحه‌ها مانده) |
-| ۶ Progress و Gamification | ⏭️ | بعد از بسته‌ی A |
+| ۶ Progress و Gamification | 🔄 | نیمه‌ی اول انجام شد (جدول «فاز ۶»). باقی: چالش‌ها، Boss Quiz، متن مربی AI برای گزارش هفتگی |
 | ۷ پایدارسازی | ⏭️ | |
 
 ## بسته‌ی A: درخواست‌های کاربر (2026-10-10)
@@ -36,6 +36,18 @@
 | A9 | این فایل پیگیری + `CLAUDE.md` برای ادامه در هر چت | ✅ | |
 | A10 | یادآوری خرید API (OpenAI) | ✅ | بنر داخل اپ (`AiNotice`، هر روز تا وقتی کلید نیست) + یادداشت پایین همین فایل |
 | A11 | گزارش وضعیت git (آیا push می‌شود؟) | ⏭️ | |
+
+## فاز ۶: چه شد، چه ماند
+
+| بخش | وضعیت | یادداشت |
+|---|---|---|
+| صفحه‌ی Progress | ✅ | `GET /progress?days=7|30|90`؛ کاشی‌های خلاصه، نمودار روزانه (SVG، قابل‌دسترس)، مقایسه‌ی این هفته با هفته‌ی قبل، توزیع وضعیت آیتم‌ها، پیشرفت بر اساس نوع، پیشرفت هر کتاب و یونیت، آزمون‌های اخیر |
+| Achievements | ✅ | ۱۸ دستاورد (قوانین در `packages/domain/src/learning/achievements.ts`)؛ ثبت یک‌بار در `UserAchievement`؛ جشن در پایان جلسه و Quiz/Exam؛ صفحه‌ی `/achievements` عقب‌افتاده‌ها را هم ثبت می‌کند |
+| گزارش هفتگی با متن مربی AI | ⏭️ | داده‌ی عددی (این هفته/هفته‌ی قبل) هست؛ متن AI نیاز به کلید دارد |
+| Challenges روزانه/هفتگی | ⏭️ | |
+| Boss Quiz (امتحان پایان unit با UI ویژه) | ⏭️ | امتحان unit موجود است؛ ظاهر و XP ویژه نه |
+| Exam برای Topic / Grammar / Vocabulary | ⏭️ | |
+| صیقل micro-interaction | ⏭️ | |
 
 ## کارهای کوچک باقی‌مانده / بدهی فنی
 
@@ -59,7 +71,7 @@
 
 ## معماری در یک نگاه
 
-monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۳۷۷ تست در زمان نگارش).
+monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۴۰۰ تست در زمان نگارش).
 
 ## نکات اجرایی
 
@@ -74,4 +86,5 @@ monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)�
 
 - 2026-10-07: فازهای ۰ تا ۳.
 - 2026-10-08/10: فاز ۴، رفع باگ کارت‌های سفید (`cn()` با tailwind-merge)، فاز ۵.
+- 2026-10-10: Progress و Achievements (نیمه‌ی اول فاز ۶).
 - 2026-10-10: ثبت درخواست‌های بسته‌ی A و این فایل؛ ثبت‌نام، کاتالوگ کتاب، Learn و AI، Difficulty، منوی گروه‌بندی‌شده.

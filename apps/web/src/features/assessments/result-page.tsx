@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import type { AssessmentResultDto, ReviewQuestionDto } from '@coach/contracts';
+import { NewAchievements } from '@/components/ui/achievement-badge';
 import { buttonClass } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScoreRing } from '@/components/ui/score-ring';
@@ -94,6 +95,8 @@ function Result({ result }: { result: AssessmentResultDto }) {
           </div>
         </div>
       </Card>
+
+      <NewAchievements badges={result.newAchievements ?? []} />
 
       {result.breakdown.length > 0 && (
         <section aria-labelledby="by-skill" className="space-y-3">
@@ -187,7 +190,7 @@ function Result({ result }: { result: AssessmentResultDto }) {
             <p className="font-heading text-xl font-extrabold">Everything was right</p>
           </Card>
         ) : (
-          <ul className="grid gap-4 lg:grid-cols-2">
+          <ul className="grid gap-4 xl:grid-cols-2">
             {shown.map((q) => (
               <li key={q.position}>
                 <ReviewRow q={q} />

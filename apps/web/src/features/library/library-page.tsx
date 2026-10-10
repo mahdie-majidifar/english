@@ -163,7 +163,7 @@ export function LibraryPage() {
       </div>
 
       {items.isPending && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-busy>
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="h-44 animate-pulse rounded-card bg-subtle" />
           ))}
@@ -215,7 +215,7 @@ export function LibraryPage() {
 
       {list.length > 0 && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {list.map((item) => (
               <ItemCard key={item.id} item={item} />
             ))}

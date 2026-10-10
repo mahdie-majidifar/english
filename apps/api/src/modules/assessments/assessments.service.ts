@@ -41,6 +41,7 @@ import { Prisma } from '../../generated/prisma/client.js';
 import { AttemptsService } from '../exercises/attempts.service.js';
 import { ExercisesService, itemSelect, toClient, toInput, withItems } from '../exercises/exercises.service.js';
 import { LearningService } from '../learning/learning.service.js';
+import { AchievementsService, badgeOf } from '../progress/achievements.service.js';
 import { ProgressService } from '../progress/progress.service.js';
 
 const DAY_MS = 86_400_000;
@@ -88,6 +89,7 @@ export class AssessmentsService {
     private readonly attempts: AttemptsService,
     private readonly learning: LearningService,
     private readonly progress: ProgressService,
+    private readonly achievements: AchievementsService,
   ) {}
 
   // ───────────── Create and list ─────────────
@@ -296,13 +298,13 @@ export class AssessmentsService {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { timezone: true } });
     const now = new Date();
 
-    await this.prisma.$transaction(async (tx) => {
+    const claimedHere = await this.prisma.$transaction(async (tx) => {
       // Whoever gets here first grades it; a concurrent second request just reads the result.
       const claimed = await tx.assessment.updateMany({
         where: { id: fresh.id, status: { not: 'GRADED' } },
         data: { status: 'GRADED', gradedAt: now, score: grade.score, breakdown: grade.breakdown as unknown as Prisma.InputJsonValue },
       });
-      if (claimed.count === 0) return;
+      if (claimed.count === 0) return false;
       const paid = await this.progress.recordAssessment(tx, {
         userId,
         localDate: toLocalDate(now, user.timezone),
@@ -311,7 +313,16 @@ export class AssessmentsService {
         xp,
       });
       await tx.assessment.update({ where: { id: fresh.id }, data: { xpEarned: paid } });
+      return true;
     });
+
+    if (claimedHere) {
+      // Only the request that graded it announces what it earned. A hiccup here never loses the result.
+      const unlocked = await this.achievements.check(userId).catch(() => []);
+      if (unlocked.length > 0) {
+        await this.prisma.assessment.update({ where: { id: fresh.id }, data: { newAchievements: unlocked.map((a) => a.code) } });
+      }
+    }
 
     return this.toResult(await this.load(userId, fresh.id));
   }
@@ -394,6 +405,7 @@ export class AssessmentsService {
       durationSec: Math.min(Math.round((ended - started) / 1000), limit),
       breakdown: grade.breakdown.map((b) => ({ ...b, label: skillLabel(b.skill) })),
       newMistakes,
+      newAchievements: row.newAchievements.flatMap((code) => badgeOf(code) ?? []),
       suggestion: weak
         ? {
             label: `Practice ${skillLabel(weak.skill).toLowerCase()}`,

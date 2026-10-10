@@ -122,7 +122,7 @@ export function AssessmentsPage() {
         </section>
       )}
 
-      <section aria-label="Build one" className="grid gap-4 lg:grid-cols-2">
+      <section aria-label="Build one" className="grid gap-4 xl:grid-cols-2">
         {(Object.keys(KINDS) as AssessmentKind[]).map((kind) => {
           const meta = KINDS[kind];
           return (
@@ -171,7 +171,7 @@ export function AssessmentsPage() {
         ) : list.data.assessments.length === 0 ? (
           <Card className="border-dashed py-10 text-center text-lg text-mute">Nothing yet. Build your first quiz above.</Card>
         ) : (
-          <ul className="grid gap-3 lg:grid-cols-2">
+          <ul className="grid gap-3 xl:grid-cols-2">
             {list.data.assessments.map((a) => (
               <li key={a.id}>
                 <HistoryRow a={a} />

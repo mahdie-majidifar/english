@@ -140,7 +140,7 @@ export function PracticePage() {
         <h2 id="by-type" className="font-heading text-2xl font-extrabold tracking-tight">
           By type
         </h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {TYPE_ORDER.filter((t) => (counts[t] ?? 0) > 0).map((type) => {
             const meta = ITEM_TYPE_META[type];
             return (

@@ -54,8 +54,8 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'You',
     items: [
-      { href: '/progress', label: 'Progress', hintFa: 'پیشرفت', icon: ChartLine, enabled: false },
-      { href: '/achievements', label: 'Achievements', hintFa: 'دستاوردها', icon: Trophy, enabled: false },
+      { href: '/progress', label: 'Progress', hintFa: 'پیشرفت', icon: ChartLine, enabled: true },
+      { href: '/achievements', label: 'Achievements', hintFa: 'دستاوردها', icon: Trophy, enabled: true },
       { href: '/profile', label: 'Profile & settings', hintFa: 'پروفایل و تنظیمات', icon: User, enabled: true },
     ],
   },

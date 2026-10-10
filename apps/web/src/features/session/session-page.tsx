@@ -12,6 +12,7 @@ import {
   type SelectionReason,
   type SessionResultDto,
 } from '@coach/contracts';
+import { NewAchievements } from '@/components/ui/achievement-badge';
 import { Button, buttonClass } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScoreRing } from '@/components/ui/score-ring';
@@ -86,6 +87,8 @@ function ResultView({ result, onMore }: { result: SessionResultDto; onMore: () =
           </div>
         ))}
       </dl>
+
+      <NewAchievements badges={result.newAchievements ?? []} />
 
       {result.wrong > 0 && (
         <p className="rounded-2xl bg-subtle px-5 py-4 text-lg text-mute">

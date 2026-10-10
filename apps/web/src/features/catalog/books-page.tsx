@@ -208,7 +208,7 @@ export function BooksPage() {
       </header>
 
       {books.isPending && (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-busy>
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3" aria-busy>
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-80 animate-pulse rounded-card bg-subtle" />
           ))}
@@ -235,7 +235,7 @@ export function BooksPage() {
       )}
 
       {books.data && books.data.length > 0 && (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {books.data.map((book, i) => (
             <BookCard key={book.id} book={book} index={i} />
           ))}

@@ -149,7 +149,7 @@ export function MistakesPage() {
           </p>
         </Card>
       ) : (
-        <ul className="grid gap-4 lg:grid-cols-2">
+        <ul className="grid gap-4 xl:grid-cols-2">
           {list.data.map((m) => (
             <li key={m.id}>
               <MistakeCard mistake={m} />

@@ -25,6 +25,7 @@ import { PrismaService } from '../../core/prisma/prisma.service.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { ExercisesService, itemSelect, toClient, toInput, withItems, type ExerciseWithItems } from '../exercises/exercises.service.js';
 import { LearningService, toPlannerState } from '../learning/learning.service.js';
+import { AchievementsService } from '../progress/achievements.service.js';
 import { ProgressService } from '../progress/progress.service.js';
 
 const toDate = (localDate: string) => new Date(`${localDate}T00:00:00Z`);
@@ -63,6 +64,7 @@ export class SessionsService {
     private readonly exercises: ExercisesService,
     private readonly learning: LearningService,
     private readonly progress: ProgressService,
+    private readonly achievements: AchievementsService,
   ) {}
 
   /**
@@ -131,7 +133,7 @@ export class SessionsService {
     const row = await this.prisma.dailySession.findFirst({ where: { id: sessionId, userId }, include: sessionInclude });
     if (!row) throw notFound('Session not found.');
     const meta = row.planMeta as unknown as PlanMeta;
-    if (row.status === 'COMPLETED' && meta.result) return meta.result;
+    if (row.status === 'COMPLETED' && meta.result) return { ...meta.result, newAchievements: meta.result.newAchievements ?? [] };
 
     const answered = row.items.flatMap((i) => (i.attempt ? [i.attempt] : []));
     if (answered.length === 0) {
@@ -158,7 +160,7 @@ export class SessionsService {
     });
 
     const streak = await this.progress.streak(userId, today);
-    const result: SessionResultDto = {
+    const base: Omit<SessionResultDto, 'newAchievements'> = {
       answered: answered.length,
       correct: count('correct'),
       almost: count('almost'),
@@ -168,16 +170,17 @@ export class SessionsService {
       activeSeconds,
       streak: { current: streak.current, longest: streak.longest, goalMetToday: streak.goalMetToday },
     };
+    // Mark it finished first: achievements count finished sessions, this one included.
     await this.prisma.dailySession.update({
       where: { id: sessionId },
-      data: {
-        status: 'COMPLETED',
-        completedAt: new Date(),
-        score: accuracy,
-        activeSeconds,
-        xpEarned: result.xpEarned,
-        planMeta: { ...meta, result } as unknown as Prisma.InputJsonValue,
-      },
+      data: { status: 'COMPLETED', completedAt: new Date(), score: accuracy, activeSeconds, xpEarned: base.xpEarned },
+    });
+    // A hiccup while checking achievements must never lose the learner's finished session.
+    const newAchievements = await this.achievements.check(userId).catch(() => []);
+    const result: SessionResultDto = { ...base, newAchievements };
+    await this.prisma.dailySession.update({
+      where: { id: sessionId },
+      data: { planMeta: { ...meta, result } as unknown as Prisma.InputJsonValue },
     });
     return result;
   }

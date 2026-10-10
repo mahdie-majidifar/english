@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { AchievementBadge } from './progress.js';
 import type { ErrorTypeCode, ClientExercise, Verdict } from './exercises.js';
 import type { CurrentContext } from './catalog.js';
 import type { ItemType, LearningStatus } from './enums.js';
@@ -54,6 +55,8 @@ export interface SessionResultDto {
   xpEarned: number;
   activeSeconds: number;
   streak: { current: number; longest: number; goalMetToday: boolean };
+  /** Earned by finishing this session. */
+  newAchievements: AchievementBadge[];
 }
 
 export interface DailySessionDto {

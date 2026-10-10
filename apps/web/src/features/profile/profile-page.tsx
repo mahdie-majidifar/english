@@ -19,7 +19,7 @@ function DifficultyPicker({ value, onPick, saving }: { value: Difficulty; onPick
         </h2>
         <p className="fa mt-0.5 text-sm text-mute">سطح سختی تمرین‌ها. هر وقت خواستی عوضش کن.</p>
       </div>
-      <div role="radiogroup" aria-label="Difficulty" className="grid gap-3 lg:grid-cols-3">
+      <div role="radiogroup" aria-label="Difficulty" className="grid gap-3 xl:grid-cols-3">
         {DIFFICULTIES.map((d) => {
           const info = DIFFICULTY_INFO[d];
           const selected = value === d;

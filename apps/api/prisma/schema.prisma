@@ -73,6 +73,7 @@ model User {
   userGamifications UserGamification[]
   xpEvents          XpEvent[]
   assessments       Assessment[]
+  achievements      UserAchievement[]
 }
 
 enum Difficulty {
@@ -733,6 +734,8 @@ model Assessment {
   /// 0..1 over all questions.
   score        Float?
   xpEarned     Int              @default(0)
+  /// Achievements this assessment unlocked, so its result page can show them again.
+  newAchievements String[]      @default([])
   /// Per-skill scores, written when graded.
   breakdown    Json?
   createdAt    DateTime         @default(now())
@@ -770,4 +773,14 @@ model ItemExplanation {
   content   Json
   aiRunId   String?      @db.Uuid
   createdAt DateTime     @default(now())
+}
+
+/// An achievement the learner has earned. What exists and how it is earned lives in packages/domain.
+model UserAchievement {
+  userId     String   @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code       String
+  unlockedAt DateTime @default(now())
+
+  @@id([userId, code])
 }

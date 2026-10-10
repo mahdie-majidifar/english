@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { SkillArea } from './enums.js';
+import type { AchievementBadge } from './progress.js';
 import type { AttemptResult, ClientExercise } from './exercises.js';
 
 /**
@@ -141,6 +142,8 @@ export interface AssessmentResultDto {
   breakdown: SkillBreakdown[];
   /** Mistakes this assessment added or repeated. */
   newMistakes: number;
+  /** Earned by finishing this one. */
+  newAchievements: AchievementBadge[];
   /** A next step drawn from the weakest skill, or null when everything went well. */
   suggestion: { label: string; href: string } | null;
   review: ReviewQuestionDto[];
