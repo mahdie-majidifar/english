@@ -78,6 +78,13 @@ describe.skipIf(!hasDatabase())('learning loop: scheduling, mistakes, daily sess
 
       const state = (await stateOf('strictly'))!;
       expect(state).toMatchObject({ reps: 1, lapses: 0, status: 'LEARNING', currentLevel: 'RECOGNITION' });
+
+      // The library shows it too: an item you have practised is no longer "new".
+      expect((await alice.get(`${API}/items/${itemId['strictly']}`).expect(200)).body.status).toBe('LEARNING');
+      const listed = (await alice.get(`${API}/items`).expect(200)).body.items as { id: string; status: string }[];
+      expect(listed.find((i) => i.id === itemId['strictly'])!.status).toBe('LEARNING');
+      expect(listed.find((i) => i.id === itemId['weird'])!.status).toBe('NEW');
+      expect((await bob.get(`${API}/items`).expect(200)).body.items).toEqual([]);
       expect(state.stability).toBeGreaterThan(0);
       expect(state.firstSeenAt).toBeTruthy();
       expect(await ctx.prisma.reviewLog.count({ where: { userId: aliceId, itemId: itemId['strictly'] } })).toBe(1);

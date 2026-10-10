@@ -40,7 +40,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/books', label: 'Books', hintFa: 'کتاب‌ها، یونیت‌ها و درس‌ها', icon: BookOpen, enabled: true, mobile: true },
       { href: '/teacher', label: 'Teacher notes', hintFa: 'یادداشت‌های کلاس', icon: NotebookPen, enabled: true },
-      { href: '/library', label: 'Library', hintFa: 'همه‌ی لغت‌ها و گرامرهای تو', icon: Library, enabled: true, mobile: true },
+      { href: '/library', label: 'Library', hintFa: 'همه‌ی لغت‌ها و گرامرهای تو', icon: Library, enabled: true },
     ],
   },
   {

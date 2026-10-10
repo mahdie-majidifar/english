@@ -5,7 +5,7 @@
 
 ## وضعیت یک‌خطی
 
-فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۴۰۰ تست؛ نیمه‌ی اول فاز ۶ هم تمام است: Progress و Achievements). مرحله‌ی بعد: بقیه‌ی فاز ۶ (چالش‌ها، Boss Quiz، متن مربی AI)، بعد فاز ۷ (پایدارسازی).
+فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۴۰۸ تست). فاز ۶: Progress، Achievements و Boss Quiz تمام است؛ مانده: چالش‌ها و متن مربی AI. مرحله‌ی بعد: به ترتیب جدول «فهرست کارهای باقی‌مانده» از T4.
 
 ## ✅ فهرست کارهای باقی‌مانده، به ترتیب اجرا (OpenAI عمداً آخر است)
 
@@ -13,9 +13,9 @@
 
 | # | کار | وضعیت | یادداشت |
 |---|---|---|---|
-| T1 | رفع باگ chip وضعیت (NEW/LEARNING/...) در Library و جزئیات آیتم | ⏭️ | `toItem` در `content.service.ts` باید از `UserItemState` پر شود |
-| T2 | بازبینی ظاهر بقیه‌ی صفحه‌ها با screenshot و اصلاح | ⏭️ | Library، Teacher notes، پلیر تمرین، نتیجه‌ی تمرین، داشبورد |
-| T3 | Boss Quiz: امتحان پایان یونیت با ظاهر و XP ویژه | ⏭️ | |
+| T1 | رفع باگ chip وضعیت (NEW/LEARNING/...) در Library و جزئیات آیتم | ✅ | `toItem` وضعیت را از `UserItemState` می‌خواند |
+| T2 | بازبینی ظاهر بقیه‌ی صفحه‌ها با screenshot و اصلاح | ✅ | روی اندازه‌ی موبایل بررسی شد. اصلاح‌ها: منوی «More» در نوار پایین موبایل (قبلاً به Mistakes/Progress/Profile راه نبود)؛ **نشت جواب**: چیپ بالای تمرین headword را نشان می‌داد (مثلاً در «Type the English word»)، حالا فقط نوع (Vocabulary/Grammar/...) |
+| T3 | Boss Quiz: امتحان پایان یونیت با ظاهر و XP ویژه | ✅ | preset `BOSS` (Exam از کل یونیت، ۲۰ سؤال، ۱۵ دقیقه، حداقل ۸ سؤال)؛ دکمه‌ی «Boss quiz» روی یونیت‌های با ≥۵ آیتم؛ ۸۰٪ یعنی برد و +۵۰ XP؛ صفحه‌ی ورود تیره و بنر «Boss defeated!»؛ دو achievement (Boss slayer، Unit conqueror)؛ ۶ تست |
 | T4 | چالش‌های روزانه و هفتگی | ⏭️ | |
 | T5 | Exam: برگشت به سؤال قبلی، وزن بیشتر Exam در ارتقای سطح، Exam برای Grammar و Vocabulary | ⏭️ | |
 | T6 | صیقل micro-interactionها | ⏭️ | |
@@ -61,7 +61,7 @@
 | Achievements | ✅ | ۱۸ دستاورد (قوانین در `packages/domain/src/learning/achievements.ts`)؛ ثبت یک‌بار در `UserAchievement`؛ جشن در پایان جلسه و Quiz/Exam؛ صفحه‌ی `/achievements` عقب‌افتاده‌ها را هم ثبت می‌کند |
 | گزارش هفتگی با متن مربی AI | ⏭️ | داده‌ی عددی (این هفته/هفته‌ی قبل) هست؛ متن AI نیاز به کلید دارد |
 | Challenges روزانه/هفتگی | ⏭️ | |
-| Boss Quiz (امتحان پایان unit با UI ویژه) | ⏭️ | امتحان unit موجود است؛ ظاهر و XP ویژه نه |
+| Boss Quiz (امتحان پایان unit با UI ویژه) | ✅ | |
 | Exam برای Topic / Grammar / Vocabulary | ⏭️ | |
 | صیقل micro-interaction | ⏭️ | |
 
@@ -87,7 +87,7 @@
 
 ## معماری در یک نگاه
 
-monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۴۰۰ تست در زمان نگارش).
+monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۴۰۸ تست در زمان نگارش).
 
 ## نکات اجرایی
 
@@ -102,5 +102,6 @@ monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)�
 
 - 2026-10-07: فازهای ۰ تا ۳.
 - 2026-10-08/10: فاز ۴، رفع باگ کارت‌های سفید (`cn()` با tailwind-merge)، فاز ۵.
+- 2026-10-10: T1 تا T3: chip وضعیت، منوی More موبایل، رفع نشت جواب، Boss Quiz.
 - 2026-10-10: Progress و Achievements (نیمه‌ی اول فاز ۶).
 - 2026-10-10: ثبت درخواست‌های بسته‌ی A و این فایل؛ ثبت‌نام، کاتالوگ کتاب، Learn و AI، Difficulty، منوی گروه‌بندی‌شده.

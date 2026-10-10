@@ -22,6 +22,9 @@ import {
 } from '@coach/contracts';
 import {
   ASSESSMENT_DEFAULTS,
+  BOSS_MIN_QUESTIONS,
+  BOSS_WIN_SCORE,
+  bossBonus,
   GRACE_SECONDS,
   MIN_QUESTIONS,
   describeResponse,
@@ -142,8 +145,15 @@ export class AssessmentsService {
     });
 
     const picked = pickQuestions({ kind: request.kind, items, count: defaults.questions, recentlyAnswered: recent });
-    if (picked.length < MIN_QUESTIONS) {
-      throw new DomainError('CONFLICT', 409, `There is not enough to ask yet. Add a few more items to ${scope.label.toLowerCase()} first.`);
+    const boss = request.preset === 'BOSS';
+    if (picked.length < (boss ? BOSS_MIN_QUESTIONS : MIN_QUESTIONS)) {
+      throw new DomainError(
+        'CONFLICT',
+        409,
+        boss
+          ? `A boss quiz needs at least ${BOSS_MIN_QUESTIONS} questions, and this unit has ${picked.length}. Add more items to it first.`
+          : `There is not enough to ask yet. Add a few more items to ${scope.label.toLowerCase()} first.`,
+      );
     }
 
     // A shorter assessment gets proportionally less time, but never less than three minutes.
@@ -153,7 +163,7 @@ export class AssessmentsService {
         userId,
         kind: request.kind,
         preset: request.preset,
-        title: `${request.kind === 'QUIZ' ? 'Quiz' : 'Exam'} · ${scope.label}`,
+        title: boss ? `Boss quiz · ${scope.label}` : `${request.kind === 'QUIZ' ? 'Quiz' : 'Exam'} · ${scope.label}`,
         timeLimitSec,
         questions: {
           create: picked.map((e, i) => ({ position: i + 1, exerciseId: e.id, skill: e.skill })),
@@ -294,7 +304,7 @@ export class AssessmentsService {
     const fresh = await this.load(userId, row.id);
     const marked = fresh.questions.map(markOf);
     const grade = gradeAssessment(marked);
-    const xp = xpForAssessment(fresh.kind as AssessmentKind, grade.score);
+    const xp = xpForAssessment(fresh.kind as AssessmentKind, grade.score) + (fresh.preset === 'BOSS' ? bossBonus(grade.score) : 0);
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { timezone: true } });
     const now = new Date();
 
@@ -405,6 +415,7 @@ export class AssessmentsService {
       durationSec: Math.min(Math.round((ended - started) / 1000), limit),
       breakdown: grade.breakdown.map((b) => ({ ...b, label: skillLabel(b.skill) })),
       newMistakes,
+      boss: row.preset === 'BOSS' ? { won: (row.score ?? grade.score) >= BOSS_WIN_SCORE, bonusXp: bossBonus(row.score ?? grade.score) } : null,
       newAchievements: row.newAchievements.flatMap((code) => badgeOf(code) ?? []),
       suggestion: weak
         ? {
@@ -462,7 +473,8 @@ export class AssessmentsService {
 
     switch (preset) {
       case 'LESSON':
-      case 'UNIT': {
+      case 'UNIT':
+      case 'BOSS': {
         const lesson = await this.lessonFor(userId, request);
         return preset === 'LESSON'
           ? {

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { AchievementBadge, AchievementDto, AchievementsDto } from '@coach/contracts';
 import {
   ACHIEVEMENTS,
+  BOSS_WIN_SCORE,
   evaluateAchievements,
   findAchievement,
   levelForXp,
@@ -32,7 +33,7 @@ export class AchievementsService {
       this.prisma.mistake.count({ where: { userId, status: 'RESOLVED' } }),
       this.prisma.assessment.findMany({
         where: { userId, status: 'GRADED' },
-        select: { kind: true, score: true, _count: { select: { questions: true } } },
+        select: { kind: true, preset: true, score: true, _count: { select: { questions: true } } },
       }),
     ]);
 
@@ -52,6 +53,7 @@ export class AchievementsService {
       exams: exams.length,
       bestQuiz: best(quizzes, 1),
       bestExam: best(exams, MIN_EXAM_QUESTIONS),
+      bossesWon: graded.filter((a) => a.preset === 'BOSS' && (a.score ?? 0) >= BOSS_WIN_SCORE).length,
       perfectTests: graded.filter((a) => (a.score ?? 0) >= 0.999 && a._count.questions >= MIN_PERFECT_QUESTIONS).length,
     };
   }

@@ -15,8 +15,18 @@ export const ASSESSMENT_DEFAULTS: Record<AssessmentKind, Partial<Record<Assessme
     UNIT: { questions: 25, minutes: 20 },
     WEEKLY: { questions: 20, minutes: 15 },
     MONTHLY: { questions: 30, minutes: 25 },
+    BOSS: { questions: 20, minutes: 15 },
   },
 };
+
+/** A boss quiz tests a whole unit, so it needs a real number of questions. */
+export const BOSS_MIN_QUESTIONS = 8;
+/** Score that beats the boss. */
+export const BOSS_WIN_SCORE = 0.8;
+export const BOSS_BONUS_XP = 50;
+
+/** Extra XP for beating a boss quiz, on top of the exam's own. */
+export const bossBonus = (score: number): number => (score >= BOSS_WIN_SCORE ? BOSS_BONUS_XP : 0);
 
 /** Fewer than this is not an assessment, just a couple of questions. */
 export const MIN_QUESTIONS = 3;

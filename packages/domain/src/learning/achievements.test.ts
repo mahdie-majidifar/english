@@ -13,6 +13,7 @@ const none: AchievementStats = {
   bestQuiz: null,
   bestExam: null,
   perfectTests: 0,
+  bossesWon: 0,
 };
 const done = (stats: Partial<AchievementStats>) => evaluateAchievements({ ...none, ...stats }).filter((a) => a.done).map((a) => a.code);
 
@@ -53,6 +54,11 @@ describe('achievements', () => {
     const items = evaluateAchievements({ ...none, itemsSeen: 40 });
     expect(items.find((a) => a.code === 'ITEMS_25')).toMatchObject({ progress: 25, target: 25, done: true });
     expect(items.find((a) => a.code === 'ITEMS_100')).toMatchObject({ progress: 40, target: 100, done: false });
+  });
+
+  it('boss quizzes unlock in steps', () => {
+    expect(done({ bossesWon: 1 })).toEqual(['BOSS_SLAYER']);
+    expect(done({ bossesWon: 3 })).toEqual(['BOSS_SLAYER', 'BOSS_3']);
   });
 
   it('a perfect test is its own achievement', () => {

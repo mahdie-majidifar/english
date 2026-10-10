@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { ExerciseFormat, ExerciseLevel } from '@coach/contracts';
 import {
+  BOSS_BONUS_XP,
+  BOSS_WIN_SCORE,
+  bossBonus,
   gradeAssessment,
   pickQuestions,
   shouldRecommendExam,
@@ -159,6 +162,15 @@ describe('xpForAssessment', () => {
   it('keeps the score inside 0..1', () => {
     expect(xpForAssessment('EXAM', 1.4)).toBe(100);
     expect(xpForAssessment('EXAM', -1)).toBe(0);
+  });
+});
+
+describe('bossBonus', () => {
+  it('pays the bonus only at or above the winning score', () => {
+    expect(bossBonus(BOSS_WIN_SCORE)).toBe(BOSS_BONUS_XP);
+    expect(bossBonus(1)).toBe(BOSS_BONUS_XP);
+    expect(bossBonus(0.79)).toBe(0);
+    expect(bossBonus(0)).toBe(0);
   });
 });
 

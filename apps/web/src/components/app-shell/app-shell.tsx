@@ -1,10 +1,11 @@
 'use client';
 
-import { LogOut } from 'lucide-react';
+import { Ellipsis, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { AuthUser } from '@coach/contracts';
+import { Dialog } from '@/components/ui/dialog';
 import { BrandMark } from '@/components/ui/spark';
 import { useLogout } from '@/features/auth/use-auth';
 import { cn } from '@/lib/cn';
@@ -44,6 +45,42 @@ function NavLink({ item, active, compact }: { item: NavItem; active: boolean; co
     <Link href={item.href} className={classes} aria-current={active ? 'page' : undefined} title={item.hintFa}>
       {content}
     </Link>
+  );
+}
+
+/** The phone's bottom bar has room for four pages; everything else lives behind this button. */
+function MoreMenu({ isActive }: { isActive: (href: string) => boolean }) {
+  const [open, setOpen] = useState(false);
+  const rest = NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => !i.mobile) })).filter((g) => g.items.length > 0);
+  const anyActive = rest.some((g) => g.items.some((i) => isActive(i.href)));
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        className={cn(
+          'flex flex-1 flex-col items-center gap-1 rounded-control py-2 font-semibold transition-colors',
+          anyActive ? 'bg-brand-soft text-brand' : 'text-mute hover:bg-subtle hover:text-ink',
+        )}
+      >
+        <Ellipsis className="size-6" strokeWidth={2} />
+        <span className="text-xs">More</span>
+      </button>
+      <Dialog open={open} onClose={() => setOpen(false)} title="More">
+        <div className="space-y-5" onClick={() => setOpen(false)}>
+          {rest.map((group) => (
+            <div key={group.label} className="space-y-1">
+              <p className="px-2 text-xs font-bold uppercase tracking-wider text-mute/80">{group.label}</p>
+              {group.items.map((item) => (
+                <NavLink key={item.href} item={item} active={isActive(item.href)} />
+              ))}
+            </div>
+          ))}
+        </div>
+      </Dialog>
+    </>
   );
 }
 
@@ -109,6 +146,7 @@ function Shell({ user, children }: { user: AuthUser; children: ReactNode }) {
         {NAV_ITEMS.filter((i) => i.mobile).map((item) => (
           <NavLink key={item.href} item={item} active={isActive(item.href)} compact />
         ))}
+        <MoreMenu isActive={isActive} />
       </nav>
     </div>
   );

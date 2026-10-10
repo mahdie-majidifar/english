@@ -4,7 +4,7 @@ import { ArrowRight, Clock, GraduationCap, ListChecks, Sparkles } from 'lucide-r
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  KIND_PRESETS,
+  LISTED_PRESETS,
   PRESET_LABELS,
   type AssessmentKind,
   type AssessmentPreset,
@@ -139,7 +139,7 @@ export function AssessmentsPage() {
               <div>
                 <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-mute">What to cover</p>
                 <div className="flex flex-wrap gap-2">
-                  {KIND_PRESETS[kind].map((preset) => (
+                  {LISTED_PRESETS(kind).map((preset) => (
                     <Button
                       key={preset}
                       variant="secondary"

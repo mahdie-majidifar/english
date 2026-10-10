@@ -33,6 +33,15 @@ const SKILL_MODE: Record<string, Mode> = {
   EXPRESSION: 'expressions',
 };
 
+/** What kind of language the exercise is about. Never the word itself: for some exercises that word is the answer. */
+const SKILL_LABEL: Record<string, string> = {
+  VOCABULARY: 'Vocabulary',
+  GRAMMAR: 'Grammar',
+  COLLOCATION: 'Collocation',
+  WORD_FORMATION: 'Word formation',
+  EXPRESSION: 'Expression',
+};
+
 const newAttemptId = () => crypto.randomUUID();
 const initialFor = (exercise: ClientExercise | undefined): unknown =>
   exercise ? FORMAT_UI[exercise.format].initial(exercise.content as never) : null;
@@ -310,7 +319,7 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone, assessment 
 
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <SkillChip mode={mode} label={`${exercise.items.length > 1 ? 'Review' : exercise.items[0]?.headword ?? ''}`} />
+              <SkillChip mode={mode} label={exercise.items.length > 1 ? 'Review' : (SKILL_LABEL[exercise.skill] ?? 'Review')} />
               {reason && (
                 <span className="rounded-full bg-subtle px-3 py-1.5 text-sm font-semibold text-mute">{REASON_LABELS[reason]}</span>
               )}

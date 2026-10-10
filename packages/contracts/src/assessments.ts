@@ -12,7 +12,7 @@ export const AssessmentKindSchema = z.enum(ASSESSMENT_KINDS);
 export type AssessmentKind = z.infer<typeof AssessmentKindSchema>;
 
 /** What an assessment covers. */
-export const ASSESSMENT_PRESETS = ['LESSON', 'UNIT', 'WEAK_AREAS', 'WEEKLY', 'MONTHLY'] as const;
+export const ASSESSMENT_PRESETS = ['LESSON', 'UNIT', 'WEAK_AREAS', 'WEEKLY', 'MONTHLY', 'BOSS'] as const;
 export const AssessmentPresetSchema = z.enum(ASSESSMENT_PRESETS);
 export type AssessmentPreset = z.infer<typeof AssessmentPresetSchema>;
 
@@ -27,13 +27,18 @@ export const PRESET_LABELS: Record<AssessmentPreset, string> = {
   WEAK_AREAS: 'Weak areas',
   WEEKLY: 'Last 7 days',
   MONTHLY: 'Last 30 days',
+  BOSS: 'Boss quiz',
 };
 
 /** Which presets each kind offers, in the order the page shows them. */
 export const KIND_PRESETS: Record<AssessmentKind, AssessmentPreset[]> = {
   QUIZ: ['LESSON', 'UNIT', 'WEAK_AREAS', 'WEEKLY'],
-  EXAM: ['LESSON', 'UNIT', 'WEEKLY', 'MONTHLY'],
+  // The boss quiz is an exam of a whole unit; it is started from the unit, not from the list of presets.
+  EXAM: ['LESSON', 'UNIT', 'WEEKLY', 'MONTHLY', 'BOSS'],
 };
+
+/** Presets the "build one" buttons offer. */
+export const LISTED_PRESETS = (kind: AssessmentKind): AssessmentPreset[] => KIND_PRESETS[kind].filter((p) => p !== 'BOSS');
 
 export const CreateAssessmentSchema = z
   .object({
@@ -41,13 +46,14 @@ export const CreateAssessmentSchema = z
     preset: AssessmentPresetSchema,
     /** With preset LESSON: test this lesson instead of the current one. */
     lessonId: z.uuid().optional(),
-    /** With preset UNIT: test this unit instead of the current one. */
+    /** With preset UNIT: test this unit instead of the current one. A boss quiz always names its unit. */
     unitId: z.uuid().optional(),
   })
   .strict()
   .refine((v) => KIND_PRESETS[v.kind].includes(v.preset), { message: 'This preset is not available for this kind.', path: ['preset'] })
   .refine((v) => !v.lessonId || v.preset === 'LESSON', { message: 'A lesson only goes with the lesson preset.', path: ['lessonId'] })
-  .refine((v) => !v.unitId || v.preset === 'UNIT', { message: 'A unit only goes with the unit preset.', path: ['unitId'] });
+  .refine((v) => !v.unitId || v.preset === 'UNIT' || v.preset === 'BOSS', { message: 'A unit only goes with the unit or boss preset.', path: ['unitId'] })
+  .refine((v) => v.preset !== 'BOSS' || Boolean(v.unitId), { message: 'A boss quiz belongs to a unit.', path: ['unitId'] });
 export type CreateAssessment = z.infer<typeof CreateAssessmentSchema>;
 
 export const AnswerAssessmentSchema = z
@@ -142,6 +148,8 @@ export interface AssessmentResultDto {
   breakdown: SkillBreakdown[];
   /** Mistakes this assessment added or repeated. */
   newMistakes: number;
+  /** Set for a boss quiz: whether it was beaten, and the bonus that earned. */
+  boss: { won: boolean; bonusXp: number } | null;
   /** Earned by finishing this one. */
   newAchievements: AchievementBadge[];
   /** A next step drawn from the weakest skill, or null when everything went well. */

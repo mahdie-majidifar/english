@@ -11,6 +11,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Dialog } from '@/components/ui/dialog';
 import { Field, TextareaField } from '@/components/ui/field';
 import { errorMessage } from '@/lib/errors';
+import { BossButton } from '@/features/assessments/boss-button';
 import { QuizButton } from '@/features/assessments/quiz-button';
 import { FillWithAiDialog } from '@/features/learn/fill-with-ai-dialog';
 import {
@@ -277,6 +278,7 @@ function UnitCard({ unit, defaultOpen }: { unit: UnitDto; defaultOpen: boolean }
             <Dumbbell className="size-4" /> Practice unit
           </Link>
           <QuizButton unitId={unit.id} />
+          {items >= 5 && <BossButton unitId={unit.id} />}
           <button
             type="button"
             onClick={() => setConfirming(true)}

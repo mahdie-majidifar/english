@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Check, CircleAlert, Clock, Flag, Star, X } from 'lucide-react';
+import { ArrowRight, Check, CircleAlert, Clock, Flag, Star, Swords, X } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -78,8 +78,8 @@ function Result({ result }: { result: AssessmentResultDto }) {
       <Card className="flex flex-col items-center gap-6 p-8 text-center sm:flex-row sm:text-left">
         <ScoreRing value={result.score} />
         <div className="min-w-0 flex-1 space-y-3">
-          <p className="text-sm font-semibold uppercase tracking-wide text-mute">{isQuiz ? 'Quiz' : 'Exam'} result</p>
-          <h1 className="font-heading text-3xl font-extrabold tracking-tight sm:text-4xl">{result.title.replace(/^(Quiz|Exam) · /, '')}</h1>
+          <p className="text-sm font-semibold uppercase tracking-wide text-mute">{result.boss ? 'Boss quiz' : isQuiz ? 'Quiz' : 'Exam'} result</p>
+          <h1 className="font-heading text-3xl font-extrabold tracking-tight sm:text-4xl">{result.title.replace(/^(Quiz|Exam|Boss quiz) · /, '')}</h1>
           <p className="text-lg text-mute">
             {result.correct} of {result.total} correct
             {result.almost > 0 ? ` · ${result.almost} almost` : ''}
@@ -95,6 +95,22 @@ function Result({ result }: { result: AssessmentResultDto }) {
           </div>
         </div>
       </Card>
+
+      {result.boss && (
+        <Card className={cn('flex items-center gap-4 p-5', result.boss.won ? 'border-good/40 bg-good-soft' : 'border-bad/40 bg-bad-soft')}>
+          <span className={cn('grid size-14 shrink-0 place-items-center rounded-2xl text-white', result.boss.won ? 'bg-good' : 'bg-bad')}>
+            <Swords className="size-7" />
+          </span>
+          <div>
+            <p className="font-heading text-2xl font-extrabold tracking-tight">{result.boss.won ? 'Boss defeated!' : 'The boss held this time'}</p>
+            <p className="text-base text-mute">
+              {result.boss.won
+                ? `You scored 80% or more: +${result.boss.bonusXp} bonus XP.`
+                : 'You need 80% to beat it. Look through the review, practise, and try again.'}
+            </p>
+          </div>
+        </Card>
+      )}
 
       <NewAchievements badges={result.newAchievements ?? []} />
 

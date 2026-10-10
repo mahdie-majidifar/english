@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, GraduationCap, ListChecks, Play, Timer } from 'lucide-react';
+import { Clock, GraduationCap, ListChecks, Play, Swords, Timer } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -30,6 +30,7 @@ function Intro({ dto, resuming, secondsLeft, starting, error, onStart }: {
 }) {
   const remaining = dto.questions.filter((q) => !q.answered).length;
   const isQuiz = dto.kind === 'QUIZ';
+  const boss = dto.preset === 'BOSS';
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -39,35 +40,37 @@ function Intro({ dto, resuming, secondsLeft, starting, error, onStart }: {
     return () => window.removeEventListener('keydown', onKey);
   }, [onStart]);
 
-  const rules = isQuiz
+  const rules = boss
+    ? ['A whole unit in one go, with no feedback until the end.', 'Score 80% or more to beat the boss and earn 50 bonus XP.', 'You can skip a question, but you cannot go back to it.']
+    : isQuiz
     ? ['After each answer you see right away if it was correct.', 'Wrong answers go to your mistakes so they come back later.']
     : ['No feedback until the end, so you see what you really know.', 'You can skip a question, but you cannot go back to it.', 'Your score and the correct answers appear after you finish.'];
 
   return (
     <Centered>
-      <Card className="w-full space-y-7 p-8 sm:p-10">
+      <Card className={`w-full space-y-7 p-8 sm:p-10 ${boss ? 'border-ink bg-ink text-white' : ''}`}>
         <div className="space-y-3 text-center">
-          <span className="mx-auto grid size-16 place-items-center rounded-2xl bg-brand text-white shadow-[0_4px_0_var(--brand-edge)]">
-            {isQuiz ? <ListChecks className="size-8" /> : <GraduationCap className="size-8" />}
+          <span className={`mx-auto grid size-16 place-items-center rounded-2xl text-white ${boss ? 'bg-bad shadow-[0_4px_0_var(--bad-edge)]' : 'bg-brand shadow-[0_4px_0_var(--brand-edge)]'}`}>
+            {boss ? <Swords className="size-8" /> : isQuiz ? <ListChecks className="size-8" /> : <GraduationCap className="size-8" />}
           </span>
-          <p className="text-sm font-semibold uppercase tracking-wide text-mute">{isQuiz ? 'Quiz' : 'Exam'}</p>
-          <h1 className="font-heading text-4xl font-extrabold tracking-tight">{dto.title.replace(/^(Quiz|Exam) · /, '')}</h1>
+          <p className={`text-sm font-semibold uppercase tracking-wide ${boss ? 'text-white/70' : 'text-mute'}`}>{boss ? 'Boss quiz' : isQuiz ? 'Quiz' : 'Exam'}</p>
+          <h1 className="font-heading text-4xl font-extrabold tracking-tight">{dto.title.replace(/^(Quiz|Exam|Boss quiz) · /, '')}</h1>
         </div>
 
         <dl className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl bg-subtle px-4 py-4 text-center">
-            <dd className="font-heading text-3xl font-extrabold">{remaining}</dd>
+            <dd className="font-heading text-3xl font-extrabold text-ink">{remaining}</dd>
             <dt className="text-sm font-semibold text-mute">{resuming ? 'questions left' : 'questions'}</dt>
           </div>
           <div className="rounded-2xl bg-subtle px-4 py-4 text-center">
-            <dd className="font-heading text-3xl font-extrabold">
+            <dd className="font-heading text-3xl font-extrabold text-ink">
               {secondsLeft != null ? `${minutes(secondsLeft)} min` : '–'}
             </dd>
             <dt className="text-sm font-semibold text-mute">{resuming ? 'left' : 'time limit'}</dt>
           </div>
         </dl>
 
-        <ul className="space-y-2 text-lg text-mute">
+        <ul className={`space-y-2 text-lg ${boss ? 'text-white/80' : 'text-mute'}`}>
           {rules.map((rule) => (
             <li key={rule} className="flex gap-3">
               <Timer className="mt-1 size-5 shrink-0 text-brand" aria-hidden />
@@ -90,7 +93,7 @@ function Intro({ dto, resuming, secondsLeft, starting, error, onStart }: {
           <Button size="lg" className="w-full" onClick={onStart} loading={starting} autoFocus>
             <Play className="size-5" fill="currentColor" /> {resuming ? 'Continue' : 'Start'}
           </Button>
-          <Link href="/assessments" className="inline-block text-base font-semibold text-mute hover:text-ink">
+          <Link href="/assessments" className={`inline-block text-base font-semibold ${boss ? 'text-white/70 hover:text-white' : 'text-mute hover:text-ink'}`}>
             Not now
           </Link>
         </div>

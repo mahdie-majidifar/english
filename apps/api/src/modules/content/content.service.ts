@@ -23,6 +23,8 @@ const itemInclude = {
     },
     orderBy: { createdAt: 'asc' },
   },
+  // An item belongs to one learner, so the only state it can have is theirs.
+  userStates: { select: { status: true } },
 } satisfies Prisma.LearningItemInclude;
 
 type ItemRow = Prisma.LearningItemGetPayload<{ include: typeof itemInclude }>;
@@ -58,8 +60,7 @@ export function toItem(row: ItemRow): Item {
         ? [{ id: link.teacherSession.id, title: link.teacherSession.title, classDate: link.teacherSession.classDate.toISOString().slice(0, 10) }]
         : [],
     ),
-    // Learning state (FSRS, mastery) arrives in phase 4. Until then everything is new.
-    status: 'NEW',
+    status: row.userStates[0]?.status ?? 'NEW',
     createdAt: row.createdAt.toISOString(),
   };
 }

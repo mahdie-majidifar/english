@@ -708,6 +708,7 @@ enum AssessmentPreset {
   WEAK_AREAS
   WEEKLY
   MONTHLY
+  BOSS
 }
 
 /// Questions are chosen when the assessment is created, so there is no "generating" state.

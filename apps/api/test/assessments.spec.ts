@@ -297,6 +297,65 @@ describe.skipIf(!hasDatabase())('quizzes and exams (real PostgreSQL)', () => {
     });
   });
 
+  describe('a boss quiz', () => {
+    let unitId: string;
+
+    beforeAll(async () => {
+      unitId = (await alice.get(`${API}/learn/context?lessonId=${lessonId}`)).body.unitId;
+    });
+
+    it('belongs to a unit, and is a kind of exam', async () => {
+      await create(alice, 'EXAM', 'BOSS').expect(400); // no unit named
+      await alice.post(`${API}/assessments`).send({ kind: 'QUIZ', preset: 'BOSS', unitId }).expect(400); // not a quiz
+      await alice.post(`${API}/assessments`).send({ kind: 'EXAM', preset: 'BOSS', unitId, lessonId }).expect(400);
+      const res = await alice.post(`${API}/assessments`).send({ kind: 'EXAM', preset: 'BOSS', unitId }).expect(201);
+      expect(res.body).toMatchObject({ kind: 'EXAM', preset: 'BOSS' });
+      expect(res.body.title).toMatch(/^Boss quiz · Unit /);
+      expect(res.body.questionCount).toBeGreaterThanOrEqual(8);
+    });
+
+    it('pays a bonus on top of the exam XP for beating it, and unlocks the achievement', async () => {
+      const summary = (await alice.post(`${API}/assessments`).send({ kind: 'EXAM', preset: 'BOSS', unitId }).expect(201)).body as AssessmentSummaryDto;
+      const dto = await start(alice, summary.id);
+      for (const q of dto.questions) await answerQ(alice, summary.id, q.id, await answerFor(ctx.prisma, q.exercise.id, true)).expect(200);
+
+      const result = (await alice.post(`${API}/assessments/${summary.id}/submit`).expect(200)).body as AssessmentResultDto;
+      expect(result.score).toBe(1);
+      expect(result.boss).toEqual({ won: true, bonusXp: 50 });
+      expect(result.xpEarned).toBeGreaterThanOrEqual(150); // 100 for a perfect exam + 50 for the boss (+ a goal bonus the first time)
+      expect(result.newAchievements.map((a) => a.code)).toContain('BOSS_SLAYER');
+    });
+
+    it('pays no bonus when it is not beaten', async () => {
+      const summary = (await alice.post(`${API}/assessments`).send({ kind: 'EXAM', preset: 'BOSS', unitId }).expect(201)).body as AssessmentSummaryDto;
+      const dto = await start(alice, summary.id);
+      for (const q of dto.questions.slice(0, 3)) await answerQ(alice, summary.id, q.id, await answerFor(ctx.prisma, q.exercise.id, true)).expect(200);
+      const result = (await alice.post(`${API}/assessments/${summary.id}/submit`).expect(200)).body as AssessmentResultDto;
+      expect(result.boss).toEqual({ won: false, bonusXp: 0 });
+      expect(result.xpEarned).toBe(Math.round(result.score * 100));
+    });
+
+    it('does not show up as a plain exam preset, and other exams carry no boss result', async () => {
+      const exam = (await alice.post(`${API}/assessments`).send({ kind: 'EXAM', preset: 'LESSON', lessonId }).expect(201)).body as AssessmentSummaryDto;
+      await start(alice, exam.id);
+      const result = (await alice.post(`${API}/assessments/${exam.id}/submit`).expect(200)).body as AssessmentResultDto;
+      expect(result.boss).toBeNull();
+    });
+
+    it('needs enough questions to be a boss', async () => {
+      const book = (await alice.post(`${API}/books`).send({ title: 'Tiny' }).expect(201)).body;
+      await alice.post(`${API}/books/${book.id}/import-structure`).send({ text: '1A One' }).expect(200);
+      const tiny = (await alice.get(`${API}/books/${book.id}`)).body.units[0];
+      await alice.post(`${API}/items`).send({ type: 'VOCABULARY', headword: 'only', meaningFa: 'فقط', lessonIds: [tiny.lessons[0].id] }).expect(201);
+      const res = await alice.post(`${API}/assessments`).send({ kind: 'EXAM', preset: 'BOSS', unitId: tiny.id }).expect(409);
+      expect(res.body.detail).toMatch(/at least 8 questions/);
+    });
+
+    it('is not offered to another learner’s unit', async () => {
+      await bob.post(`${API}/assessments`).send({ kind: 'EXAM', preset: 'BOSS', unitId }).expect(404);
+    });
+  });
+
   describe('listing and recommendations', () => {
     it('lists the learner’s own, newest first, and nobody else’s', async () => {
       const mine = (await alice.get(`${API}/assessments`).expect(200)).body;
