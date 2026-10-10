@@ -89,6 +89,32 @@ export interface ImportStructureResult {
   unitsCreated: number;
   lessonsCreated: number;
   lessonsSkipped: number;
+  /** Lessons that had a neutral name ("Lesson B") and now have the real one. */
+  lessonsRenamed: number;
   /** Lines that could not be understood, so the UI can show them. */
   rejected: string[];
+}
+
+/** A book the app already knows the shape of, so the learner does not have to type every unit. */
+export interface BookTemplateDto {
+  key: string;
+  series: string;
+  title: string;
+  levelNumber: number | null;
+  cefr: string | null;
+  unitCount: number;
+  lessonCount: number;
+  /** Whether lesson names are included, or only codes the learner names from their own copy. */
+  hasTitles: boolean;
+  note: string | null;
+  /** Set once the learner has added it. */
+  bookId: string | null;
+}
+
+/**
+ * The neutral names a built-in book template gives lessons ("Lesson B", "Unit 12"). A pasted table
+ * of contents may replace these, but never a name the learner wrote.
+ */
+export function isPlaceholderLessonTitle(title: string): boolean {
+  return /^(Lesson [A-Za-z0-9]{1,3}|Unit \d{1,3})$/.test(title.trim());
 }

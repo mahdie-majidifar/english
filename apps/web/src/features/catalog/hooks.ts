@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   BookDetail,
   BookSummary,
+  BookTemplateDto,
   CreateBook,
   CreateLesson,
   CreateUnit,
@@ -29,6 +30,9 @@ export const useBook = (id: string | undefined) =>
     enabled: Boolean(id),
   });
 
+export const useBookTemplates = () =>
+  useQuery({ queryKey: ['book-templates'], queryFn: () => api<BookTemplateDto[]>('/book-templates') });
+
 export const useCurrent = () =>
   useQuery({
     queryKey: catalogKeys.current,
@@ -50,6 +54,18 @@ export function useCreateBook() {
   return useMutation({
     mutationFn: (body: CreateBook) => api<BookSummary>('/books', { method: 'POST', body }),
     onSuccess: invalidate,
+  });
+}
+
+export function useAddBookTemplate() {
+  const invalidate = useInvalidateCatalog();
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (key: string) => api<BookSummary>(`/book-templates/${key}/add`, { method: 'POST' }),
+    onSuccess: async () => {
+      await invalidate();
+      await client.invalidateQueries({ queryKey: ['book-templates'] });
+    },
   });
 }
 

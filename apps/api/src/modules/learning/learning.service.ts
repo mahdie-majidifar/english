@@ -13,10 +13,12 @@ import {
   ratingFor,
   retrievability,
   reviewCard,
+  rulesFor,
   severityOf,
   statusFor,
   SERIOUS_PRIORITY,
   updateAccuracy,
+  type DifficultyRules,
   type PlannerItem,
   type SrsState,
 } from '@coach/domain';
@@ -93,7 +95,14 @@ export interface AttemptLearning {
 export class LearningService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** How hard this learner has chosen to have it. */
+  async difficultyFor(userId: string, db: Pick<Tx, 'userProfile'> = this.prisma): Promise<DifficultyRules> {
+    const profile = await db.userProfile.findUnique({ where: { userId }, select: { difficulty: true } });
+    return rulesFor(profile?.difficulty);
+  }
+
   async applyAttempt(tx: Tx, input: ApplyAttemptInput): Promise<AttemptLearning> {
+    const rules = await this.difficultyFor(input.userId, tx);
     const itemUpdates: ItemUpdate[] = [];
     let mistakesResolved = 0;
 
@@ -132,11 +141,12 @@ export class LearningService {
       const accuracyEwma = updateAccuracy(existing?.accuracyEwma ?? 0, result.score, existing?.reps ?? 0);
       const level = adaptLevel(
         {
-          currentLevel: existing?.currentLevel ?? 'RECOGNITION',
+          currentLevel: existing?.currentLevel ?? rules.startLevel,
           levelStreak: existing?.levelStreak ?? 0,
           highestLevelPassed: existing?.highestLevelPassed ?? null,
         },
         result.isCorrect,
+        rules,
       );
       const stability = srs?.stability ?? 0;
       const mastery = computeMastery({ stability, accuracyEwma, highestLevelPassed: level.highestLevelPassed });

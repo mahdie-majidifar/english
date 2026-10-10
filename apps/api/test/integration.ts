@@ -49,14 +49,16 @@ export async function resetDatabase(ctx: TestContext): Promise<void> {
   await ctx.prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
 }
 
-/** Creates a user directly in the database and returns a logged-in supertest agent. */
-export async function signedInAgent(ctx: TestContext, email: string) {
+/** Creates a user directly in the database and returns a logged-in supertest agent (easy difficulty unless told otherwise). */
+export async function signedInAgent(ctx: TestContext, email: string, options: { difficulty?: 'EASY' | 'STANDARD' | 'CHALLENGING' } = {}) {
   await ctx.prisma.user.create({
     data: {
       email,
       passwordHash: await argon2.hash(PASSWORD),
       displayName: email.split('@')[0]!,
-      profile: { create: {} },
+      // The older suites test the basic mechanics (flashcards, three right answers to move up), which
+      // is the easy setting. Difficulty has its own suite.
+      profile: { create: { difficulty: options.difficulty ?? 'EASY' } },
     },
   });
   const agent = request.agent(ctx.server);

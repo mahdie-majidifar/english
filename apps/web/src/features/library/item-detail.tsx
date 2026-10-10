@@ -43,7 +43,7 @@ function Examples({ examples }: { examples: string[] }) {
   );
 }
 
-function TypeDetails({ item }: { item: Item }) {
+export function TypeDetails({ item }: { item: Item }) {
   const p = item.payload;
   switch (item.type) {
     case 'IRREGULAR_VERB':

@@ -98,7 +98,7 @@ export class AssessmentsService {
 
     const now = new Date();
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { timezone: true } });
-    const scope = await this.resolveScope(userId, request.preset, now);
+    const scope = await this.resolveScope(userId, request, now);
     const candidates = await this.prisma.learningItem.findMany({ where: scope.where, select: itemSelect, take: 300 });
     if (candidates.length === 0) {
       throw new DomainError('CONFLICT', 409, scope.empty);
@@ -106,6 +106,7 @@ export class AssessmentsService {
 
     await this.exercises.ensureTemplatesFor(userId, candidates.map(toInput));
     const ids = candidates.map((c) => c.id);
+    const rules = await this.learning.difficultyFor(userId);
     const [pool, context, recent] = await Promise.all([
       this.exercises.poolFor(userId, ids),
       this.learning.contextFor(userId, ids, now, toLocalDate(now, user.timezone)),
@@ -127,7 +128,7 @@ export class AssessmentsService {
       return {
         id: c.id,
         needsWork: Boolean(ctx.state?.isWeak) || ctx.state?.status === 'LEARNING' || ctx.mistakePriority > 0,
-        level: (ctx.state?.currentLevel ?? 'RECOGNITION') as ExerciseLevel,
+        level: (ctx.state?.currentLevel ?? rules.startLevel) as ExerciseLevel,
         pool: (pool.get(c.id) ?? []).map((e) => ({
           id: e.id,
           level: e.level as ExerciseLevel,
@@ -415,22 +416,45 @@ export class AssessmentsService {
     return enrollment?.currentLesson ?? null;
   }
 
+  /** The lesson or unit the learner picked, or else the one they are studying now. */
+  private async lessonFor(userId: string, request: { lessonId?: string; unitId?: string }) {
+    if (request.lessonId) {
+      const lesson = await this.prisma.lesson.findFirst({
+        where: { id: request.lessonId, unit: { book: { ownerId: userId } } },
+        include: { unit: true },
+      });
+      if (!lesson) throw notFound('Lesson not found.');
+      return lesson;
+    }
+    if (request.unitId) {
+      const unit = await this.prisma.unit.findFirst({
+        where: { id: request.unitId, book: { ownerId: userId } },
+        include: { lessons: { take: 1 } },
+      });
+      if (!unit) throw notFound('Unit not found.');
+      return { unitId: unit.id, unit, code: '', title: unit.title ?? '' };
+    }
+    const current = await this.currentLesson(userId);
+    if (!current) throw new DomainError('CONFLICT', 409, 'Choose your current lesson first (open Books and pick one).');
+    return current;
+  }
+
   private async resolveScope(
     userId: string,
-    preset: AssessmentPreset,
+    request: CreateAssessment,
     now: Date,
   ): Promise<{ where: Prisma.LearningItemWhereInput; label: string; empty: string }> {
+    const preset = request.preset;
     const base = { ownerId: userId, archivedAt: null } satisfies Prisma.LearningItemWhereInput;
     const since = (days: number) => new Date(now.getTime() - days * DAY_MS);
 
     switch (preset) {
       case 'LESSON':
       case 'UNIT': {
-        const lesson = await this.currentLesson(userId);
-        if (!lesson) throw new DomainError('CONFLICT', 409, 'Choose your current lesson first (open Books and pick one).');
+        const lesson = await this.lessonFor(userId, request);
         return preset === 'LESSON'
           ? {
-              where: { ...base, sources: { some: { lessonId: lesson.id } } },
+              where: { ...base, sources: { some: { lessonId: (lesson as { id: string }).id } } },
               label: `${lesson.code} · ${lesson.title}`,
               empty: 'This lesson has no items yet. Add some first.',
             }

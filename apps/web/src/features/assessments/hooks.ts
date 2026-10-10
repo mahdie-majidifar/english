@@ -25,7 +25,7 @@ export const useAssessments = () =>
 export function useCreateAssessment() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (body: { kind: AssessmentKind; preset: AssessmentPreset }) =>
+    mutationFn: (body: { kind: AssessmentKind; preset: AssessmentPreset; lessonId?: string; unitId?: string }) =>
       api<AssessmentSummaryDto>('/assessments', { method: 'POST', body }),
     onSuccess: () => client.invalidateQueries({ queryKey: assessmentKeys.list }),
   });

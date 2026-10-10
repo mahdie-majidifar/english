@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeKey, parseStructureText } from './text.js';
+import { isPlaceholderLessonTitle, normalizeKey, parseStructureText } from './text.js';
 
 describe('normalizeKey', () => {
   it('treats casing, spacing and trailing punctuation as the same word', () => {
@@ -43,5 +43,17 @@ describe('parseStructureText', () => {
 
   it('handles Windows line endings', () => {
     expect(parseStructureText('1A One\r\n1B Two\r\n').lessons).toHaveLength(2);
+  });
+});
+
+describe('isPlaceholderLessonTitle', () => {
+  it('recognises the neutral names templates use', () => {
+    for (const t of ['Lesson A', 'Lesson C', 'Unit 1', 'Unit 60', ' Lesson B ']) expect(isPlaceholderLessonTitle(t)).toBe(true);
+  });
+
+  it('never treats a real title as a placeholder', () => {
+    for (const t of ['Business', 'Unit of measure', 'Lesson plans', 'Lesson', 'Unit', 'Unit one', 'Shopping']) {
+      expect(isPlaceholderLessonTitle(t)).toBe(false);
+    }
   });
 });

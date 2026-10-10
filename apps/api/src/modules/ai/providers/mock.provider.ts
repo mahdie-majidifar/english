@@ -36,6 +36,8 @@ export class MockProvider implements LlmProvider {
   async generateJson(request: JsonRequest): Promise<JsonResult> {
     if (request.schemaName === 'answer_evaluation') return this.evaluate(request);
     if (request.schemaName === 'generated_exercises') return this.respond({ exercises: [] });
+    if (request.schemaName === 'item_explanation') return this.explain(request);
+    if (request.schemaName === 'suggested_lesson_content') return this.suggest();
     const items: DraftItem[] = [];
     let current: ItemType = 'VOCABULARY';
 
@@ -59,6 +61,43 @@ export class MockProvider implements LlmProvider {
       exercises: [],
     };
     return { json: parsed, rawText: JSON.stringify(parsed), inputTokens: 0, outputTokens: 0 };
+  }
+
+  /** A sample mini-lesson, clearly labelled as such. */
+  private explain(request: JsonRequest): JsonResult {
+    const text = typeof request.messages.at(-1)?.content === 'string' ? (request.messages.at(-1)!.content as string) : '';
+    const headword = /headword: (.*)/.exec(text)?.[1]?.trim() ?? 'this item';
+    return this.respond({
+      overviewFa: `این یک توضیح نمونه (حالت mock) برای «${headword}» است. با کلید واقعی OpenAI، اینجا یک درس کوتاه و دقیق می‌بینی.`,
+      keyPoints: ['توضیح واقعی بعد از وصل کردن API ساخته می‌شود.', 'این متن فقط برای دیدن شکل صفحه است.'],
+      examples: [{ en: `I use "${headword}" in a sentence.`, fa: `من «${headword}» را در یک جمله به کار می‌برم.` }],
+      commonMistakes: [],
+    });
+  }
+
+  /** A fixed sample list, so the "fill this lesson" flow can be tried without a key. */
+  private suggest(): JsonResult {
+    const word = (headword: string, meaningEn: string, meaningFa: string, example: string): DraftItem => ({
+      ...emptyDraftItem('VOCABULARY', headword),
+      meaningEn,
+      meaningFa,
+      partOfSpeech: 'noun',
+      examples: [example],
+      confidence: 'medium',
+    });
+    const parsed: ParsedMaterial = {
+      summary: 'Mock suggestions: a sample list, not real analysis.',
+      items: [
+        word('agenda', 'a list of things to discuss at a meeting', 'دستور جلسه', 'Let us go through the agenda first.'),
+        word('deadline', 'the time by which something must be done', 'مهلت', 'The deadline is Friday.'),
+        word('colleague', 'a person you work with', 'همکار', 'My colleague called me yesterday.'),
+        word('budget', 'the money available to spend', 'بودجه', 'We are over budget this month.'),
+        word('invoice', 'a bill for goods or services', 'فاکتور', 'Please send me the invoice.'),
+        { ...emptyDraftItem('COLLOCATION', 'meet a deadline'), meaningEn: 'finish on time', meaningFa: 'به مهلت رسیدن', examples: ['We worked hard to meet the deadline.'], confidence: 'medium' },
+      ],
+      exercises: [],
+    };
+    return this.respond(parsed);
   }
 
   /** Only recognises an answer that matches a model answer; everything else is "wrong". */

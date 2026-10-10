@@ -44,19 +44,24 @@ export interface LevelState {
  * Adaptive difficulty. Three right answers in a row move the item up a level; two wrong answers in
  * a row move it back down (so the learner returns to easier exercises and explanations).
  */
-export function adaptLevel(state: LevelState, isCorrect: boolean): LevelState {
+export function adaptLevel(
+  state: LevelState,
+  isCorrect: boolean,
+  /** How many in a row move the item. The difficulty setting chooses these. */
+  thresholds: { promoteAfter: number; demoteAfter: number } = { promoteAfter: 3, demoteAfter: 2 },
+): LevelState {
   let { currentLevel, levelStreak, highestLevelPassed } = state;
 
   if (isCorrect) {
     if (rank(currentLevel) > rank(highestLevelPassed)) highestLevelPassed = currentLevel;
     levelStreak = Math.max(levelStreak, 0) + 1;
-    if (levelStreak >= 3 && rank(currentLevel) < LEVELS.length - 1) {
+    if (levelStreak >= thresholds.promoteAfter && rank(currentLevel) < LEVELS.length - 1) {
       currentLevel = LEVELS[rank(currentLevel) + 1]!;
       levelStreak = 0;
     }
   } else {
     levelStreak = Math.min(levelStreak, 0) - 1;
-    if (levelStreak <= -2 && rank(currentLevel) > 0) {
+    if (levelStreak <= -thresholds.demoteAfter && rank(currentLevel) > 0) {
       currentLevel = LEVELS[rank(currentLevel) - 1]!;
       levelStreak = 0;
     }

@@ -24,8 +24,12 @@ export const MIN_QUESTIONS = 3;
 /** Seconds the server still accepts an answer after the clock runs out, for slow networks. */
 export const GRACE_SECONDS = 30;
 
-/** Formats that need the AI to be marked. Assessments stay fully rule-marked, so they never wait on it. */
-const AI_MARKED: ReadonlySet<ExerciseFormat> = new Set<ExerciseFormat>(['free_production']);
+/**
+ * Formats a quiz or exam never uses: ones that need the AI to be marked (assessments stay fully
+ * rule-marked, so they never wait on it) and ones the learner marks themselves (a test must not
+ * take your own word for it).
+ */
+const NOT_IN_ASSESSMENTS: ReadonlySet<ExerciseFormat> = new Set<ExerciseFormat>(['free_production', 'flashcard']);
 
 export interface AssessmentExercise {
   id: string;
@@ -62,7 +66,7 @@ export function pickQuestions(input: {
 }): AssessmentExercise[] {
   const rng = input.rng ?? Math.random;
   const items = input.items
-    .map((i) => ({ ...i, pool: i.pool.filter((e) => !AI_MARKED.has(e.format)) }))
+    .map((i) => ({ ...i, pool: i.pool.filter((e) => !NOT_IN_ASSESSMENTS.has(e.format)) }))
     .filter((i) => i.pool.length > 0);
   if (items.length === 0 || input.count <= 0) return [];
 

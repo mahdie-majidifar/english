@@ -1,16 +1,18 @@
 'use client';
 
-import { ArrowLeft, ClipboardPaste, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ClipboardPaste, Dumbbell, GraduationCap, Plus, Sparkles, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
-import type { BookDetail, ImportStructureResult, LessonDto, UnitDto } from '@coach/contracts';
-import { Button } from '@/components/ui/button';
+import { isPlaceholderLessonTitle, type BookDetail, type ImportStructureResult, type LessonDto, type UnitDto } from '@coach/contracts';
+import { Button, buttonClass } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Dialog } from '@/components/ui/dialog';
 import { Field, TextareaField } from '@/components/ui/field';
 import { errorMessage } from '@/lib/errors';
+import { QuizButton } from '@/features/assessments/quiz-button';
+import { FillWithAiDialog } from '@/features/learn/fill-with-ai-dialog';
 import {
   useBook,
   useCreateLesson,
@@ -55,6 +57,7 @@ function ImportDialog({ bookId, open, onClose }: { bookId: string; open: boolean
           <p className="rounded-control bg-good-soft px-4 py-3 text-base font-medium text-good-edge">
             Added {result.lessonsCreated} lesson{result.lessonsCreated === 1 ? '' : 's'} and {result.unitsCreated} unit
             {result.unitsCreated === 1 ? '' : 's'}.
+            {result.lessonsRenamed > 0 && ` Named ${result.lessonsRenamed} lesson${result.lessonsRenamed === 1 ? '' : 's'}.`}
             {result.lessonsSkipped > 0 && ` ${result.lessonsSkipped} already existed.`}
           </p>
           {result.rejected.length > 0 && (
@@ -160,50 +163,71 @@ function AddLessonForm({ unitId, onDone }: { unitId: string; onDone: () => void 
   );
 }
 
-function LessonRow({ lesson }: { lesson: LessonDto }) {
+function LessonRow({ lesson, unitTitle }: { lesson: LessonDto; unitTitle: string | null }) {
   const setCurrent = useSetCurrentLesson();
   const remove = useDeleteLesson();
   const [confirming, setConfirming] = useState(false);
+  const [filling, setFilling] = useState(false);
+  const empty = lesson.itemCount === 0;
 
   return (
     <li
-      className={`flex flex-wrap items-center gap-3 rounded-2xl border px-4 py-3 transition-colors ${
+      className={`rounded-2xl border px-4 py-3 transition-colors ${
         lesson.isCurrent ? 'border-brand/40 bg-brand-soft' : 'border-line bg-card'
       }`}
     >
-      <span className="grid h-10 min-w-12 place-items-center rounded-xl bg-subtle px-2 font-heading text-lg font-extrabold">
-        {lesson.code}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-lg font-semibold">{lesson.title}</p>
-        <p className="text-sm text-mute">
-          {lesson.itemCount} item{lesson.itemCount === 1 ? '' : 's'}
-        </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="grid h-10 min-w-12 place-items-center rounded-xl bg-subtle px-2 font-heading text-lg font-extrabold">
+          {lesson.code}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-lg font-semibold">{lesson.title}</p>
+          <p className="text-sm text-mute">
+            {empty ? 'No items yet' : `${lesson.itemCount} item${lesson.itemCount === 1 ? '' : 's'}`}
+          </p>
+        </div>
+        {lesson.isCurrent && (
+          <span className="inline-flex items-center gap-2 rounded-full bg-brand px-3 py-1.5 text-sm font-semibold text-white">
+            <i aria-hidden className="size-2 animate-pulse rounded-full bg-white" /> Current lesson
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          aria-label={`Delete lesson ${lesson.code}`}
+          className="grid size-9 place-items-center rounded-control text-mute transition-colors hover:bg-bad-soft hover:text-bad-edge"
+        >
+          <Trash2 className="size-4" />
+        </button>
       </div>
 
-      {lesson.isCurrent ? (
-        <span className="inline-flex items-center gap-2 rounded-full bg-brand px-3 py-1.5 text-sm font-semibold text-white">
-          <i aria-hidden className="size-2 animate-pulse rounded-full bg-white" /> Current lesson
-        </span>
-      ) : (
-        <Button
-          variant="secondary"
-          size="sm"
-          loading={setCurrent.isPending}
-          onClick={() => setCurrent.mutate(lesson.id)}
-        >
-          Set as current
-        </Button>
-      )}
-      <button
-        type="button"
-        onClick={() => setConfirming(true)}
-        aria-label={`Delete lesson ${lesson.code}`}
-        className="grid size-10 place-items-center rounded-control text-mute transition-colors hover:bg-bad-soft hover:text-bad-edge"
-      >
-        <Trash2 className="size-5" />
-      </button>
+      <div className="mt-3 flex flex-wrap items-start gap-2">
+        <Link href={`/learn?lessonId=${lesson.id}`} className={buttonClass('secondary', 'sm')}>
+          <GraduationCap className="size-4" /> Learn
+        </Link>
+        <Link href={`/practice/play?scope=lesson&lessonId=${lesson.id}&count=10`} className={buttonClass('secondary', 'sm')}>
+          <Dumbbell className="size-4" /> Practice
+        </Link>
+        <QuizButton lessonId={lesson.id} />
+        {empty && (
+          <Button variant="secondary" size="sm" onClick={() => setFilling(true)}>
+            <Sparkles className="size-4" /> Fill with AI
+          </Button>
+        )}
+        {!lesson.isCurrent && (
+          <Button variant="ghost" size="sm" loading={setCurrent.isPending} onClick={() => setCurrent.mutate(lesson.id)}>
+            Set as current
+          </Button>
+        )}
+      </div>
 
+      <FillWithAiDialog
+        open={filling}
+        onClose={() => setFilling(false)}
+        lessonId={lesson.id}
+        lessonName={`${lesson.code} · ${lesson.title}`}
+        needsTopic={isPlaceholderLessonTitle(lesson.title) && !unitTitle}
+      />
       <ConfirmDialog
         open={confirming}
         onClose={() => setConfirming(false)}
@@ -218,44 +242,72 @@ function LessonRow({ lesson }: { lesson: LessonDto }) {
   );
 }
 
-function UnitCard({ unit }: { unit: UnitDto }) {
+function UnitCard({ unit, defaultOpen }: { unit: UnitDto; defaultOpen: boolean }) {
   const remove = useDeleteUnit();
+  const [open, setOpen] = useState(defaultOpen);
   const [adding, setAdding] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const items = unit.lessons.reduce((n, l) => n + l.itemCount, 0);
+  const current = unit.lessons.some((l) => l.isCurrent);
 
   return (
-    <Card>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="font-heading text-2xl font-extrabold tracking-tight">
-          Unit {unit.number}
-          {unit.title && <span className="text-mute"> · {unit.title}</span>}
-        </h2>
+    <Card className={current ? 'border-brand/40' : undefined}>
+      <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
-          onClick={() => setConfirming(true)}
-          aria-label={`Delete unit ${unit.number}`}
-          className="grid size-10 place-items-center rounded-control text-mute transition-colors hover:bg-bad-soft hover:text-bad-edge"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="flex min-w-0 flex-1 items-center gap-3 text-left"
         >
-          <Trash2 className="size-5" />
+          <ChevronDown className={`size-5 shrink-0 text-mute transition-transform ${open ? '' : '-rotate-90'}`} />
+          <span className="min-w-0">
+            <span className="block truncate font-heading text-xl font-extrabold tracking-tight">
+              Unit {unit.number}
+              {unit.title && <span className="text-mute"> · {unit.title}</span>}
+            </span>
+            <span className="text-sm text-mute">
+              {unit.lessons.length} lesson{unit.lessons.length === 1 ? '' : 's'} ·{' '}
+              {items === 0 ? 'no items yet' : `${items} item${items === 1 ? '' : 's'}`}
+              {current ? ' · you are here' : ''}
+            </span>
+          </span>
         </button>
+        <div className="flex flex-wrap items-start gap-2">
+          <Link href={`/practice/play?scope=unit&unitId=${unit.id}&count=15`} className={buttonClass('secondary', 'sm')}>
+            <Dumbbell className="size-4" /> Practice unit
+          </Link>
+          <QuizButton unitId={unit.id} />
+          <button
+            type="button"
+            onClick={() => setConfirming(true)}
+            aria-label={`Delete unit ${unit.number}`}
+            className="grid size-9 place-items-center rounded-control text-mute transition-colors hover:bg-bad-soft hover:text-bad-edge"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        </div>
       </div>
 
-      {unit.lessons.length === 0 ? (
-        <p className="rounded-2xl bg-subtle px-4 py-3 text-base text-mute">No lessons in this unit yet.</p>
-      ) : (
-        <ul className="space-y-2">
-          {unit.lessons.map((lesson) => (
-            <LessonRow key={lesson.id} lesson={lesson} />
-          ))}
-        </ul>
-      )}
+      {open && (
+        <div className="mt-4">
+          {unit.lessons.length === 0 ? (
+            <p className="rounded-2xl bg-subtle px-4 py-3 text-base text-mute">No lessons in this unit yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {unit.lessons.map((lesson) => (
+                <LessonRow key={lesson.id} lesson={lesson} unitTitle={unit.title} />
+              ))}
+            </ul>
+          )}
 
-      {adding ? (
-        <AddLessonForm unitId={unit.id} onDone={() => setAdding(false)} />
-      ) : (
-        <Button variant="ghost" size="sm" className="mt-3" onClick={() => setAdding(true)}>
-          <Plus className="size-4" /> Add lesson
-        </Button>
+          {adding ? (
+            <AddLessonForm unitId={unit.id} onDone={() => setAdding(false)} />
+          ) : (
+            <Button variant="ghost" size="sm" className="mt-3" onClick={() => setAdding(true)}>
+              <Plus className="size-4" /> Add lesson
+            </Button>
+          )}
+        </div>
       )}
 
       <ConfirmDialog
@@ -361,7 +413,7 @@ export function BookDetailPage() {
       ) : (
         <div className="space-y-5">
           {data.units.map((unit) => (
-            <UnitCard key={unit.id} unit={unit} />
+            <UnitCard key={unit.id} unit={unit} defaultOpen={data.units.length <= 10 || unit.lessons.some((l) => l.isCurrent)} />
           ))}
         </div>
       )}

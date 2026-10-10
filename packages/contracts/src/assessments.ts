@@ -35,9 +35,18 @@ export const KIND_PRESETS: Record<AssessmentKind, AssessmentPreset[]> = {
 };
 
 export const CreateAssessmentSchema = z
-  .object({ kind: AssessmentKindSchema, preset: AssessmentPresetSchema })
+  .object({
+    kind: AssessmentKindSchema,
+    preset: AssessmentPresetSchema,
+    /** With preset LESSON: test this lesson instead of the current one. */
+    lessonId: z.uuid().optional(),
+    /** With preset UNIT: test this unit instead of the current one. */
+    unitId: z.uuid().optional(),
+  })
   .strict()
-  .refine((v) => KIND_PRESETS[v.kind].includes(v.preset), { message: 'This preset is not available for this kind.', path: ['preset'] });
+  .refine((v) => KIND_PRESETS[v.kind].includes(v.preset), { message: 'This preset is not available for this kind.', path: ['preset'] })
+  .refine((v) => !v.lessonId || v.preset === 'LESSON', { message: 'A lesson only goes with the lesson preset.', path: ['lessonId'] })
+  .refine((v) => !v.unitId || v.preset === 'UNIT', { message: 'A unit only goes with the unit preset.', path: ['unitId'] });
 export type CreateAssessment = z.infer<typeof CreateAssessmentSchema>;
 
 export const AnswerAssessmentSchema = z

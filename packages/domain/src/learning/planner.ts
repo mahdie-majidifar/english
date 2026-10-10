@@ -60,6 +60,8 @@ export const DEFAULT_WEIGHTS: PlannerWeights = {
 export interface PlannerConfig {
   budgetSeconds: number;
   maxNewItems: number;
+  /** The level a brand-new item starts at (from the difficulty setting). */
+  startLevel?: ExerciseLevel;
   now: Date;
   weights?: Partial<PlannerWeights>;
 }
@@ -182,7 +184,7 @@ export function planDailySession(items: PlannerItem[], config: PlannerConfig, rn
     const fresh = isNewItem(item);
     if (fresh && newCount >= config.maxNewItems) return;
 
-    const level = item.state?.currentLevel ?? 'RECOGNITION';
+    const level = item.state?.currentLevel ?? config.startLevel ?? 'RECOGNITION';
     const exercise = chooseExercise(
       item.pool,
       level,

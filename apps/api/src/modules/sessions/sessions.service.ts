@@ -15,6 +15,7 @@ import {
   scoreItem,
   teacherRecency,
   toLocalDate,
+  usableExercises,
   type PlannerItem,
   type PoolExercise,
 } from '@coach/domain';
@@ -228,9 +229,13 @@ export class SessionsService {
 
     await this.exercises.ensureTemplatesFor(userId, promising.map((p) => toInput(p.item)));
     const ids = promising.map((p) => p.item.id);
-    const [pool, recent] = await Promise.all([this.exercises.poolFor(userId, ids), this.exercises.recentExerciseIds(userId)]);
+    const [pool, recent, rules] = await Promise.all([
+      this.exercises.poolFor(userId, ids),
+      this.exercises.recentExerciseIds(userId),
+      this.learning.difficultyFor(userId),
+    ]);
     for (const p of promising) {
-      p.planner.pool = (pool.get(p.item.id) ?? []).map((e) => ({
+      p.planner.pool = usableExercises(pool.get(p.item.id) ?? [], rules).map((e) => ({
         id: e.id,
         format: e.format as PoolExercise['format'],
         level: e.level,
@@ -239,7 +244,7 @@ export class SessionsService {
       }));
     }
 
-    const plan = planDailySession(promising.map((p) => p.planner), { budgetSeconds, maxNewItems: 5, now }, Math.random);
+    const plan = planDailySession(promising.map((p) => p.planner), { budgetSeconds, maxNewItems: 5, startLevel: rules.startLevel, now }, Math.random);
     if (plan.steps.length === 0) return null;
 
     const session = await this.prisma.dailySession.create({

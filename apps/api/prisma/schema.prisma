@@ -75,6 +75,12 @@ model User {
   assessments       Assessment[]
 }
 
+enum Difficulty {
+  EASY
+  STANDARD
+  CHALLENGING
+}
+
 model UserProfile {
   userId           String   @id @db.Uuid
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -83,6 +89,7 @@ model UserProfile {
   learningGoal     String?
   dailyGoalMinutes Int      @default(10)
   sessionMinutes   Int      @default(10)
+  difficulty       Difficulty @default(CHALLENGING)
   updatedAt        DateTime @updatedAt
 }
 
@@ -115,12 +122,15 @@ model Book {
   title       String
   levelNumber Int?
   cefr        String?
+  /// Set when the book came from the built-in list, so it cannot be added twice.
+  catalogKey  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   units       Unit[]
   enrollments Enrollment[]
 
+  @@unique([ownerId, catalogKey])
   @@index([ownerId])
 }
 
@@ -198,6 +208,7 @@ model LearningItem {
   userStates     UserItemState[]
   mistakes       Mistake[]
   sessionItems   DailySessionItem[]
+  explanation    ItemExplanation?
 
   @@unique([ownerId, type, normalizedKey])
   @@index([ownerId, type, archivedAt])
@@ -749,4 +760,14 @@ model AssessmentQuestion {
   attempt ExerciseAttempt?
 
   @@unique([assessmentId, position])
+}
+
+/// A mini-lesson about one item, written by the AI on request and kept so it is never paid for twice.
+model ItemExplanation {
+  itemId    String       @id @db.Uuid
+  item      LearningItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  /// Explanation from packages/contracts.
+  content   Json
+  aiRunId   String?      @db.Uuid
+  createdAt DateTime     @default(now())
 }

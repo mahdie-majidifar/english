@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, BookOpen, Check, Dumbbell, NotebookPen, Plus } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, Dumbbell, GraduationCap, NotebookPen, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { buttonClass } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -53,9 +53,14 @@ export function CurrentFocus() {
       </div>
       <div className="flex flex-wrap gap-3">
         {current.itemCount > 0 && (
-          <Link href="/practice/play?scope=current&count=10" className={buttonClass('primary', 'md')}>
-            <Dumbbell className="size-5" /> Practice this lesson
-          </Link>
+          <>
+            <Link href={`/learn?lessonId=${current.lesson.id}`} className={buttonClass('primary', 'md')}>
+              <GraduationCap className="size-5" /> Learn this lesson
+            </Link>
+            <Link href="/practice/play?scope=current&count=10" className={buttonClass('secondary', 'md')}>
+              <Dumbbell className="size-5" /> Practice
+            </Link>
+          </>
         )}
         <Link href="/library/new" className={buttonClass(current.itemCount > 0 ? 'secondary' : 'primary', 'md')}>
           <Plus className="size-5" /> Add item

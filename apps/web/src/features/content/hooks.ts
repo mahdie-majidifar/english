@@ -16,6 +16,7 @@ export interface ItemFilters {
   type?: ItemType;
   q?: string;
   lessonId?: string;
+  unitId?: string;
   bookId?: string;
 }
 
@@ -31,6 +32,7 @@ function listPath(filters: ItemFilters, cursor?: string): string {
   if (filters.type) params.set('type', filters.type);
   if (filters.q) params.set('q', filters.q);
   if (filters.lessonId) params.set('lessonId', filters.lessonId);
+  if (filters.unitId) params.set('unitId', filters.unitId);
   if (filters.bookId) params.set('bookId', filters.bookId);
   if (cursor) params.set('cursor', cursor);
   const qs = params.toString();

@@ -19,6 +19,7 @@ import {
   scoreItem,
   shuffle,
   toLocalDate,
+  usableExercises,
   type ExerciseDraft,
   type ItemInput,
   type PlannerItem,
@@ -98,7 +99,8 @@ export class ExercisesService {
     if (candidates.length === 0) return { exercises: [], scopeLabel: scope.label, itemCount: 0 };
 
     const context = await this.learning.contextFor(userId, candidates.map((c) => c.id), now, localDate);
-    const levelOf = (id: string): ExerciseLevel => context.get(id)?.state?.currentLevel ?? 'RECOGNITION';
+    const rules = await this.learning.difficultyFor(userId);
+    const levelOf = (id: string): ExerciseLevel => context.get(id)?.state?.currentLevel ?? rules.startLevel;
 
     // The same scoring as the daily session: due reviews, mistakes, weak and new items first.
     const ranked = shuffle(candidates.map(toInput), Math.random)
@@ -144,7 +146,7 @@ export class ExercisesService {
     const target = request.count - (matching ? 1 : 0);
     for (let slot = 0; picked.length < target && slot < solo.length * 3; slot++) {
       const item = solo[slot % solo.length]!;
-      const available = (pool.get(item.id) ?? []).filter((e) => !usedIds.has(e.id));
+      const available = usableExercises(pool.get(item.id) ?? [], rules).filter((e) => !usedIds.has(e.id));
       const choice = chooseExercise(
         available.map((e) => ({ level: e.level, format: e.format as ExerciseFormat, e })),
         levelOf(item.id),
@@ -311,6 +313,16 @@ export class ExercisesService {
         });
         if (!lesson) throw notFound('Lesson not found.');
         return { where: { ...base, sources: { some: { lessonId: lesson.id } } }, label: `${lesson.code} · ${lesson.title}` };
+      }
+      case 'unit': {
+        const unit = await this.prisma.unit.findFirst({
+          where: { id: request.unitId!, book: { ownerId: userId } },
+        });
+        if (!unit) throw notFound('Unit not found.');
+        return {
+          where: { ...base, sources: { some: { lesson: { unitId: unit.id } } } },
+          label: unit.title ? `Unit ${unit.number} · ${unit.title}` : `Unit ${unit.number}`,
+        };
       }
       case 'type':
         return { where: { ...base, type: request.type! }, label: ITEM_TYPE_META[request.type!].plural };

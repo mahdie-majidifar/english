@@ -10,14 +10,14 @@ import { useLogout } from '@/features/auth/use-auth';
 import { cn } from '@/lib/cn';
 import { AiNotice } from './ai-notice';
 import { AuthGate } from './auth-gate';
-import { NAV_ITEMS, type NavItem } from './nav';
+import { NAV_GROUPS, NAV_ITEMS, type NavItem } from './nav';
 
 function NavLink({ item, active, compact }: { item: NavItem; active: boolean; compact?: boolean }) {
   const Icon = item.icon;
   const content = (
     <>
       <Icon className={cn('shrink-0', compact ? 'size-6' : 'size-5')} strokeWidth={2} />
-      <span className={cn(compact ? 'text-xs' : 'text-base')}>{item.label}</span>
+      <span className={cn(compact ? 'text-xs' : 'text-base')}>{compact ? item.label.replace(' & settings', '').replace('Quizzes & Exams', 'Tests') : item.label}</span>
       {!item.enabled && !compact && (
         <span className="ml-auto rounded-full bg-subtle px-2 py-0.5 text-xs font-semibold text-mute">Soon</span>
       )}
@@ -35,13 +35,13 @@ function NavLink({ item, active, compact }: { item: NavItem; active: boolean; co
 
   if (!item.enabled) {
     return (
-      <span className={classes} aria-disabled title="Coming in a later phase">
+      <span className={classes} aria-disabled title={`${item.hintFa} (به‌زودی)`}>
         {content}
       </span>
     );
   }
   return (
-    <Link href={item.href} className={classes} aria-current={active ? 'page' : undefined}>
+    <Link href={item.href} className={classes} aria-current={active ? 'page' : undefined} title={item.hintFa}>
       {content}
     </Link>
   );
@@ -64,9 +64,14 @@ function Shell({ user, children }: { user: AuthUser; children: ReactNode }) {
           <span className="font-heading text-xl font-extrabold tracking-tight">English Coach</span>
         </Link>
 
-        <nav aria-label="Main" className="flex flex-1 flex-col gap-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => (
-            <NavLink key={item.href} item={item} active={isActive(item.href)} />
+        <nav aria-label="Main" className="flex flex-1 flex-col gap-5 overflow-y-auto">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label} className="flex flex-col gap-1">
+              <p className="px-4 pb-1 text-xs font-bold uppercase tracking-wider text-mute/80">{group.label}</p>
+              {group.items.map((item) => (
+                <NavLink key={item.href} item={item} active={isActive(item.href)} />
+              ))}
+            </div>
           ))}
         </nav>
 

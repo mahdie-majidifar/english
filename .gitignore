@@ -18,3 +18,7 @@ storage/*
 apps/api/src/generated
 
 .DS_Store
+
+# local server logs
+*.log
+*.err

@@ -77,3 +77,6 @@ export function parseStructureText(text: string): ParsedStructure {
     rejected,
   };
 }
+
+// Lives in contracts so the screens and the server agree on what counts as a neutral name.
+export { isPlaceholderLessonTitle } from '@coach/contracts';

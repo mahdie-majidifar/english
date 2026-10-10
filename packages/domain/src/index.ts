@@ -11,3 +11,4 @@ export * from './learning/gamification.js';
 export * from './learning/planner.js';
 
 export * from './learning/assessment.js';
+export * from './learning/difficulty.js';

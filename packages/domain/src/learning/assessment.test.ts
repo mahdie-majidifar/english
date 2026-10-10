@@ -44,7 +44,7 @@ describe('pickQuestions', () => {
   });
 
   it('never repeats a question and never asks for more than exist', () => {
-    const items = [item('a', [exercise('multiple_choice'), exercise('fill_blank')]), item('b', [exercise('flashcard')])];
+    const items = [item('a', [exercise('multiple_choice'), exercise('fill_blank')]), item('b', [exercise('word_formation')])];
     const picked = pickQuestions({ kind: 'EXAM', items, count: 10, rng: seeded(2) });
     expect(picked).toHaveLength(3);
     expect(new Set(picked.map((p) => p.id)).size).toBe(3);
@@ -53,6 +53,12 @@ describe('pickQuestions', () => {
   it('leaves out questions that need the AI to be marked', () => {
     const items = [item('a', [exercise('free_production', 'PRODUCTION')]), item('b', [exercise('multiple_choice')])];
     const picked = pickQuestions({ kind: 'QUIZ', items, count: 5, rng: seeded(3) });
+    expect(picked.map((p) => p.format)).toEqual(['multiple_choice']);
+  });
+
+  it('leaves out flashcards: a test does not take the learner’s word for it', () => {
+    const items = [item('a', [exercise('flashcard'), exercise('multiple_choice')]), item('b', [exercise('flashcard')])];
+    const picked = pickQuestions({ kind: 'EXAM', items, count: 5, rng: seeded(9) });
     expect(picked.map((p) => p.format)).toEqual(['multiple_choice']);
   });
 

@@ -7,8 +7,9 @@ import { catalogKeys } from '@/features/catalog/hooks';
 import { dashboardKey } from '@/features/dashboard/hooks';
 
 export interface PracticeParams {
-  scope: 'current' | 'all' | 'lesson' | 'type' | 'item' | 'due' | 'mistakes' | 'weak';
+  scope: 'current' | 'all' | 'lesson' | 'unit' | 'type' | 'item' | 'due' | 'mistakes' | 'weak';
   lessonId?: string;
+  unitId?: string;
   itemId?: string;
   type?: string;
   count: number;

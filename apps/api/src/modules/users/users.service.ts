@@ -15,6 +15,7 @@ function toProfile(user: UserWithProfile): Profile {
     learningGoal: user.profile?.learningGoal ?? null,
     dailyGoalMinutes: user.profile?.dailyGoalMinutes ?? 10,
     sessionMinutes: user.profile?.sessionMinutes ?? 10,
+    difficulty: user.profile?.difficulty ?? 'CHALLENGING',
   };
 }
 

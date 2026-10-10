@@ -344,17 +344,19 @@ export interface ClientExercise {
   estimatedSeconds: number;
 }
 
-export const PRACTICE_SCOPES = ['current', 'all', 'lesson', 'type', 'item', 'due', 'mistakes', 'weak'] as const;
+export const PRACTICE_SCOPES = ['current', 'all', 'lesson', 'unit', 'type', 'item', 'due', 'mistakes', 'weak'] as const;
 export const PracticeRequestSchema = z
   .object({
     scope: z.enum(PRACTICE_SCOPES).default('current'),
     lessonId: z.uuid().optional(),
+    unitId: z.uuid().optional(),
     itemId: z.uuid().optional(),
     type: z.enum(['VOCABULARY', 'COLLOCATION', 'GRAMMAR', 'EXPRESSION', 'WORD_FORMATION', 'IRREGULAR_VERB', 'WORD_DISTINCTION', 'SENTENCE_PATTERN', 'PRONUNCIATION']).optional(),
     count: z.number().int().min(3).max(20).default(10),
   })
   .superRefine((v, ctx) => {
     if (v.scope === 'lesson' && !v.lessonId) ctx.addIssue({ code: 'custom', path: ['lessonId'], message: 'Choose a lesson.' });
+    if (v.scope === 'unit' && !v.unitId) ctx.addIssue({ code: 'custom', path: ['unitId'], message: 'Choose a unit.' });
     if (v.scope === 'item' && !v.itemId) ctx.addIssue({ code: 'custom', path: ['itemId'], message: 'Choose an item.' });
     if (v.scope === 'type' && !v.type) ctx.addIssue({ code: 'custom', path: ['type'], message: 'Choose a type.' });
   });

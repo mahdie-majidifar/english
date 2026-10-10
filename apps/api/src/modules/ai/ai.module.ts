@@ -4,6 +4,7 @@ import { AiGateway } from './ai-gateway.service.js';
 import { AnswerEvaluatorService } from './answer-evaluator.service.js';
 import { ContentParserService } from './content-parser.service.js';
 import { ExerciseGeneratorService } from './exercise-generator.service.js';
+import { LearningContentService } from './learning-content.service.js';
 import { LLM_PROVIDER, type LlmProvider } from './llm.js';
 import { MockProvider } from './providers/mock.provider.js';
 import { OpenAiProvider } from './providers/openai.provider.js';
@@ -24,7 +25,8 @@ import { UnconfiguredProvider } from './providers/unconfigured.provider.js';
     ContentParserService,
     AnswerEvaluatorService,
     ExerciseGeneratorService,
+    LearningContentService,
   ],
-  exports: [LLM_PROVIDER, AiGateway, ContentParserService, AnswerEvaluatorService, ExerciseGeneratorService],
+  exports: [LLM_PROVIDER, AiGateway, ContentParserService, AnswerEvaluatorService, ExerciseGeneratorService, LearningContentService],
 })
 export class AiModule {}

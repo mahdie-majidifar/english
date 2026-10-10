@@ -21,6 +21,7 @@ import {
   UpdateUnitSchema,
   type BookDetail,
   type BookSummary,
+  type BookTemplateDto,
   type CreateBook,
   type CreateLesson,
   type CreateUnit,
@@ -46,6 +47,16 @@ export class CatalogController {
   @Get('books')
   listBooks(@CurrentUser() user: RequestUser): Promise<BookSummary[]> {
     return this.catalog.listBooks(user.id);
+  }
+
+  @Get('book-templates')
+  listTemplates(@CurrentUser() user: RequestUser): Promise<BookTemplateDto[]> {
+    return this.catalog.listTemplates(user.id);
+  }
+
+  @Post('book-templates/:key/add')
+  addTemplate(@CurrentUser() user: RequestUser, @Param('key') key: string): Promise<BookSummary> {
+    return this.catalog.addTemplate(user.id, key);
   }
 
   @Post('books')

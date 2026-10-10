@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { parseStructureText } from '@coach/domain';
+import { isPlaceholderLessonTitle, parseStructureText } from '@coach/domain';
 import type {
   BookDetail,
+  BookTemplateDto,
   BookSummary,
   CreateBook,
   CreateLesson,
@@ -15,6 +16,7 @@ import type {
 import { DomainError, notFound } from '../../core/http/domain-error.js';
 import { isUniqueViolation } from '../../core/prisma/errors.js';
 import { PrismaService } from '../../core/prisma/prisma.service.js';
+import { BOOK_TEMPLATES, findTemplate } from './book-templates.js';
 
 const conflict = (detail: string) => new DomainError('CONFLICT', 409, detail);
 
@@ -112,6 +114,64 @@ export class CatalogService {
       itemCount: 0,
       isCurrent: false,
     };
+  }
+
+  // ───────────── Built-in book list ─────────────
+
+  async listTemplates(userId: string): Promise<BookTemplateDto[]> {
+    const added = await this.prisma.book.findMany({
+      where: { ownerId: userId, catalogKey: { not: null } },
+      select: { id: true, catalogKey: true },
+    });
+    const byKey = new Map(added.map((b) => [b.catalogKey, b.id]));
+    return BOOK_TEMPLATES.map((t) => ({
+      key: t.key,
+      series: t.series,
+      title: t.title,
+      levelNumber: t.levelNumber,
+      cefr: t.cefr,
+      unitCount: t.units.length,
+      lessonCount: t.units.reduce((n, u) => n + u.lessons.length, 0),
+      hasTitles: t.units.some((u) => u.title !== null) || t.units.some((u) => u.lessons.some((l) => !isPlaceholderLessonTitle(l.title))),
+      note: t.note,
+      bookId: byKey.get(t.key) ?? null,
+    }));
+  }
+
+  /** Adds a built-in book with all its units and lessons. Adding the same one twice returns the first. */
+  async addTemplate(userId: string, key: string): Promise<BookSummary> {
+    const template = findTemplate(key);
+    if (!template) throw notFound('That book is not in the list.');
+
+    const existing = await this.prisma.book.findFirst({ where: { ownerId: userId, catalogKey: key }, select: { id: true } });
+    if (existing) throw conflict('You already added this book.');
+
+    let createdId: string;
+    try {
+      const created = await this.prisma.book.create({
+        data: {
+          ownerId: userId,
+          series: template.series,
+          title: template.title,
+          levelNumber: template.levelNumber,
+          cefr: template.cefr,
+          catalogKey: key,
+          units: {
+            create: template.units.map((u) => ({
+              number: u.number,
+              title: u.title,
+              lessons: { create: u.lessons.map((l) => ({ code: l.code, title: l.title })) },
+            })),
+          },
+        },
+        select: { id: true },
+      });
+      createdId = created.id;
+    } catch (error) {
+      if (isUniqueViolation(error)) throw conflict('You already added this book.');
+      throw error;
+    }
+    return (await this.listBooks(userId)).find((b) => b.id === createdId)!;
   }
 
   async updateBook(userId: string, bookId: string, dto: UpdateBook): Promise<void> {
@@ -214,8 +274,9 @@ export class CatalogService {
     return this.prisma.$transaction(async (tx) => {
       const existingUnits = await tx.unit.findMany({
         where: { bookId },
-        include: { lessons: { select: { code: true } } },
+        include: { lessons: { select: { id: true, code: true, title: true } } },
       });
+      const lessonsByUnit = new Map(existingUnits.map((u) => [u.number, u.lessons]));
       const unitIds = new Map(existingUnits.map((u) => [u.number, u.id]));
       const knownLessons = new Map(
         existingUnits.map((u) => [u.number, new Set(u.lessons.map((l) => l.code))]),
@@ -224,6 +285,7 @@ export class CatalogService {
       let unitsCreated = 0;
       let lessonsCreated = 0;
       let lessonsSkipped = 0;
+      let lessonsRenamed = 0;
 
       for (const unit of parsed.units) {
         const existingId = unitIds.get(unit.number);
@@ -234,6 +296,13 @@ export class CatalogService {
               where: { id: existingId, title: null },
               data: { title: unit.title },
             });
+            // A unit that is a single lesson (collocation books) is named by its unit title.
+            const only = lessonsByUnit.get(unit.number);
+            if (only?.length === 1 && isPlaceholderLessonTitle(only[0]!.title)) {
+              await tx.lesson.update({ where: { id: only[0]!.id }, data: { title: unit.title } });
+              only[0]!.title = unit.title;
+              lessonsRenamed++;
+            }
           }
           continue;
         }
@@ -249,7 +318,15 @@ export class CatalogService {
         const unitId = unitIds.get(lesson.unitNumber)!;
         const codes = knownLessons.get(lesson.unitNumber)!;
         if (codes.has(lesson.code)) {
-          lessonsSkipped++;
+          // Give a neutral name ("Lesson B") its real one; never touch a name the learner wrote.
+          const known = lessonsByUnit.get(lesson.unitNumber)?.find((l) => l.code === lesson.code);
+          if (known && isPlaceholderLessonTitle(known.title) && !isPlaceholderLessonTitle(lesson.title)) {
+            await tx.lesson.update({ where: { id: known.id }, data: { title: lesson.title } });
+            known.title = lesson.title;
+            lessonsRenamed++;
+          } else {
+            lessonsSkipped++;
+          }
           continue;
         }
         await tx.lesson.create({ data: { unitId, code: lesson.code, title: lesson.title } });
@@ -257,7 +334,7 @@ export class CatalogService {
         lessonsCreated++;
       }
 
-      return { unitsCreated, lessonsCreated, lessonsSkipped, rejected: parsed.rejected };
+      return { unitsCreated, lessonsCreated, lessonsSkipped, lessonsRenamed, rejected: parsed.rejected };
     });
   }
 
