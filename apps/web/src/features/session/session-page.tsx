@@ -13,6 +13,7 @@ import {
   type SessionResultDto,
 } from '@coach/contracts';
 import { NewAchievements } from '@/components/ui/achievement-badge';
+import { CountUp } from '@/components/ui/count-up';
 import { Button, buttonClass } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScoreRing } from '@/components/ui/score-ring';
@@ -56,7 +57,9 @@ function ResultView({ result, onMore }: { result: SessionResultDto; onMore: () =
             <Star className="size-7" fill="currentColor" />
           </span>
           <div>
-            <p className="font-heading text-3xl font-extrabold">+{result.xpEarned} XP</p>
+            <p className="font-heading text-3xl font-extrabold">
+              +<CountUp value={result.xpEarned} /> XP
+            </p>
             <p className="text-base font-semibold text-mute">earned today</p>
           </div>
         </Card>

@@ -121,6 +121,7 @@ export class TeacherController {
     stream.pipe(res);
   }
 
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('teacher-materials/:materialId/reparse')
   @HttpCode(200)
   reparse(

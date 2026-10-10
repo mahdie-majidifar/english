@@ -1,4 +1,5 @@
 import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   LearnContextQuerySchema,
   SuggestLessonContentSchema,
@@ -33,6 +34,7 @@ export class LearnController {
   }
 
   /** AI call. Returns the kept explanation unless `?refresh=1`. */
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('items/:itemId/explain')
   @HttpCode(200)
   explain(
@@ -44,6 +46,7 @@ export class LearnController {
   }
 
   /** AI call. Parks the suggestions as a draft to review; saves nothing to the library. */
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('lessons/:lessonId/suggest-content')
   @HttpCode(200)
   suggest(

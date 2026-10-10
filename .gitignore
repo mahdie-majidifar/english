@@ -22,3 +22,6 @@ apps/api/src/generated
 # local server logs
 *.log
 *.err
+
+# database backups (can hold personal data)
+backups/

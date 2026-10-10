@@ -5,7 +5,7 @@
 
 ## وضعیت یک‌خطی
 
-فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۴۴۲ تست). فاز ۶ تمام است به‌جز متن مربی AI (به کلید OpenAI وابسته است و در T9 می‌آید). مرحله‌ی بعد: به ترتیب جدول «فهرست کارهای باقی‌مانده» از T6.
+فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۴۵۹ تست). فاز ۶ تمام است به‌جز متن مربی AI (به کلید OpenAI وابسته است و در T9 می‌آید). فاز ۷ بیشترش انجام شد. مانده: T8 (عنوان درس‌ها، منتظر کاربر)، بقیه‌ی T7، و T9 (OpenAI، آخر).
 
 ## ✅ فهرست کارهای باقی‌مانده، به ترتیب اجرا (OpenAI عمداً آخر است)
 
@@ -18,8 +18,8 @@
 | T3 | Boss Quiz: امتحان پایان یونیت با ظاهر و XP ویژه | ✅ | preset `BOSS` (Exam از کل یونیت، ۲۰ سؤال، ۱۵ دقیقه، حداقل ۸ سؤال)؛ دکمه‌ی «Boss quiz» روی یونیت‌های با ≥۵ آیتم؛ ۸۰٪ یعنی برد و +۵۰ XP؛ صفحه‌ی ورود تیره و بنر «Boss defeated!»؛ دو achievement (Boss slayer، Unit conqueror)؛ ۶ تست |
 | T4 | چالش‌های روزانه و هفتگی | ✅ | یک چالش روزانه (+۱۵ XP) و یک هفتگی (+۶۰ XP) که از روی تاریخ انتخاب می‌شوند (بدون ذخیره‌ی برنامه)؛ پاداش فقط یک‌بار در `XpEvent` (دلیل `CHALLENGE`)؛ کارت در داشبورد؛ `GET /challenges`؛ achievement «Challenger»؛ ۱۹ تست |
 | T5 | Exam: برگشت به سؤال قبلی، وزن بیشتر Exam در ارتقای سطح، Exam برای Grammar و Vocabulary | ✅ | دکمه‌ی Back در Exam (جواب قبلی برمی‌گردد و قابل تغییر است)؛ جواب درست در Exam دو برابر در ارتقای سطح حساب می‌شود (`evidenceWeight`)؛ دو preset جدید `GRAMMAR` و `VOCABULARY` برای Exam روی همه‌ی کتاب‌ها |
-| T6 | صیقل micro-interactionها | ⏭️ | |
-| T7 | فاز ۷ پایدارسازی: تست E2E، سرعت، امنیت، بکاپ دیتابیس | ⏭️ | |
+| T6 | صیقل micro-interactionها | ✅ | شمارش تدریجی XP در نتیجه‌ها (`CountUp`، با احترام به reduced-motion)، محو شدن نرم بین صفحه‌ها؛ انیمیشن‌های قبلی (pop، slide، flame) سر جایشان |
+| T7 | فاز ۷ پایدارسازی: تست E2E، سرعت، امنیت، بکاپ دیتابیس | 🔄 | **انجام شد:** تست مسیر کامل یک کاربر (`journey.spec.ts`، ۱۱ مرحله از ثبت‌نام تا Achievement)؛ هدرهای امنیتی صفحه‌ها؛ rate limit جداگانه برای همه‌ی مسیرهای AI؛ سه index جدید؛ `pnpm backup` (pg_dump، ۱۴ نسخه‌ی آخر) و راهنمای restore؛ `pnpm start:local` (ساخت، migrate، اجرای API و وب با یک دستور). **مانده:** تست E2E واقعی با مرورگر (Playwright؛ دانلود مرورگر لازم است و باید با اجازه‌ی کاربر باشد)، CSP سخت‌گیرانه (Next اسکریپت inline دارد)، سنجش سرعت با داده‌ی حجیم |
 | T8 | عنوان درس‌های AEF و Collocations | ⏸️ منتظر کاربر | کاربر فهرست محتوای کتاب‌ها را می‌فرستد یا با Paste contents وارد می‌کند |
 | **T9** | **OpenAI (آخر؛ کاربر فردا انجام می‌دهد)** | ⏸️ | خرید و گذاشتن کلید؛ بعد امتحان واقعی همه‌ی مسیرهای AI (تحلیل یادداشت معلم، Explain، Fill with AI، نمره‌ی جواب آزاد)، تنظیم promptها، متن مربی AI برای گزارش هفتگی |
 
@@ -86,11 +86,12 @@
 
 ## معماری در یک نگاه
 
-monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۴۴۲ تست در زمان نگارش).
+monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۴۵۹ تست در زمان نگارش).
 
 ## نکات اجرایی
 
-- اجرا: API با `node apps/api/dist/main.js` (بعد از build) و `AI_PROVIDER=mock`؛ web با `pnpm exec next dev --port 3000` داخل `apps/web`. ورود: `learner@coach.local`، پسورد در `.env` (`SEED_USER_PASSWORD`).
+- اجرای ساده: `pnpm start:local` (همه‌چیز را می‌سازد و بالا می‌آورد؛ http://localhost:3000). پشتیبان: `pnpm backup`.
+- اجرا (دستی): API با `node apps/api/dist/main.js` (بعد از build) و `AI_PROVIDER=mock`؛ web با `pnpm exec next dev --port 3000` داخل `apps/web`. ورود: `learner@coach.local`، پسورد در `.env` (`SEED_USER_PASSWORD`).
 - Prisma 7: `migrate dev` تعاملی است. روش: `prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script -o <dir>/migration.sql`، سپس `prisma migrate deploy` و `prisma generate`.
 - قبل از typecheck اپ‌ها، پکیج‌ها را build کن (`turbo run build --filter=@coach/contracts --filter=@coach/domain`).
 - ظاهر UI را حتماً با screenshot بررسی کن، نه فقط متن DOM.
@@ -101,6 +102,7 @@ monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)�
 
 - 2026-10-07: فازهای ۰ تا ۳.
 - 2026-10-08/10: فاز ۴، رفع باگ کارت‌های سفید (`cn()` با tailwind-merge)، فاز ۵.
+- 2026-10-10: T6 و بخش بزرگ T7: CountUp، fade، تست مسیر کامل، هدرهای امنیتی، backup، start:local، README.
 - 2026-10-10: T4 و T5: چالش‌ها، Exam دوطرفه (Back)، وزن Exam، Exam گرامر و لغت.
 - 2026-10-10: T1 تا T3: chip وضعیت، منوی More موبایل، رفع نشت جواب، Boss Quiz.
 - 2026-10-10: Progress و Achievements (نیمه‌ی اول فاز ۶).

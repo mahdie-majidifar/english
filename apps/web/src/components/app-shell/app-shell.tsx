@@ -135,7 +135,10 @@ function Shell({ user, children }: { user: AuthUser; children: ReactNode }) {
       <main className="min-w-0 px-5 pb-28 pt-8 sm:px-8 lg:pb-12 lg:pt-10">
         <div className="mx-auto w-full max-w-5xl">
           <AiNotice />
-          {children}
+          {/* A new key per page replays the fade, so moving around feels smooth rather than abrupt. */}
+          <div key={pathname} className="animate-[fade-in_220ms_ease-out]">
+            {children}
+          </div>
         </div>
       </main>
 

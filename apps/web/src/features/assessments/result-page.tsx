@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import type { AssessmentResultDto, ReviewQuestionDto } from '@coach/contracts';
 import { NewAchievements } from '@/components/ui/achievement-badge';
+import { CountUp } from '@/components/ui/count-up';
 import { buttonClass } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScoreRing } from '@/components/ui/score-ring';
@@ -87,7 +88,7 @@ function Result({ result }: { result: AssessmentResultDto }) {
           </p>
           <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
             <span className="inline-flex items-center gap-2 rounded-full bg-xp/20 px-4 py-1.5 text-base font-bold text-[#8a6500]">
-              <Star className="size-4" fill="currentColor" /> +{result.xpEarned} XP
+              <Star className="size-4" fill="currentColor" /> +<CountUp value={result.xpEarned} /> XP
             </span>
             <span className="inline-flex items-center gap-2 rounded-full bg-subtle px-4 py-1.5 text-base font-semibold text-mute">
               <Clock className="size-4" /> about {minutes} min

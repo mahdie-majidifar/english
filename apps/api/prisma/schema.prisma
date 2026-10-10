@@ -585,6 +585,8 @@ model MistakeOccurrence {
   createdAt      DateTime @default(now())
 
   @@index([mistakeId, createdAt])
+  /// Looked up when a result page asks which mistakes an assessment made.
+  @@index([attemptId])
 }
 
 // ───────────────────────── Daily session ─────────────────────────
@@ -746,6 +748,7 @@ model Assessment {
   questions AssessmentQuestion[]
 
   @@index([userId, kind, createdAt])
+  @@index([userId, status])
 }
 
 /// One locked question. Later changes to the exercise pool never change an assessment.
@@ -766,6 +769,7 @@ model AssessmentQuestion {
   attempt ExerciseAttempt?
 
   @@unique([assessmentId, position])
+  @@index([exerciseId])
 }
 
 /// A mini-lesson about one item, written by the AI on request and kept so it is never paid for twice.

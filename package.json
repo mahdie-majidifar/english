@@ -15,7 +15,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md,css}\" --ignore-path .gitignore",
     "db:generate": "pnpm --filter @coach/api db:generate",
     "db:migrate": "pnpm --filter @coach/api db:migrate",
-    "db:seed": "pnpm --filter @coach/api db:seed"
+    "db:seed": "pnpm --filter @coach/api db:seed",
+    "start:local": "node scripts/start-local.mjs",
+    "backup": "node scripts/backup-db.mjs"
   },
   "devDependencies": {
     "prettier": "^3.4.2",
