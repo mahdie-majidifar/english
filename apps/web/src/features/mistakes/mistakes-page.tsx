@@ -33,9 +33,9 @@ function MistakeCard({ mistake }: { mistake: MistakeDto }) {
           <Link href={`/library/${mistake.item.id}`} className="font-heading text-2xl font-extrabold tracking-tight hover:text-brand">
             {mistake.item.headword}
           </Link>
-          <p className="mt-1 text-base font-semibold text-mute">
-            {mistake.errorLabelEn}
-            <span className="fa ms-2 font-normal">{mistake.errorLabelFa}</span>
+          <p className="mt-1 flex flex-wrap items-baseline gap-x-3 text-base font-semibold text-mute">
+            <span>{mistake.errorLabelEn}</span>
+            <span className="fa font-normal">{mistake.errorLabelFa}</span>
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -57,9 +57,9 @@ function MistakeCard({ mistake }: { mistake: MistakeDto }) {
         <p className="rounded-2xl bg-subtle px-4 py-3 text-lg">
           {last.expectedAnswer ? (
             <>
-              <span className="text-bad-edge line-through">{last.userAnswer || '(empty)'}</span>
+              <bdi className="text-bad-edge line-through">{last.userAnswer || '(empty)'}</bdi>
               <span className="mx-2 text-mute">→</span>
-              <span className="font-semibold text-good-edge">{last.expectedAnswer}</span>
+              <bdi className="font-semibold text-good-edge">{last.expectedAnswer}</bdi>
             </>
           ) : (
             <span className="font-semibold text-bad-edge">{last.userAnswer || '(empty)'}</span>
