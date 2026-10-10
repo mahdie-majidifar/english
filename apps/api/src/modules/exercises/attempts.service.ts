@@ -122,6 +122,8 @@ export class AttemptsService {
           evaluation,
           hintsUsed: request.hintsUsed,
           durationMs: request.durationMs,
+          // An exam proves more than practice does, so a right answer there counts double toward moving up.
+          evidenceWeight: assessment?.kind === 'EXAM' ? 2 : 1,
           items: itemResults,
         });
         await this.progress.recordAttempt(tx, {

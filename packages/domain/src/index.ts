@@ -13,3 +13,4 @@ export * from './learning/planner.js';
 export * from './learning/assessment.js';
 export * from './learning/difficulty.js';
 export * from './learning/achievements.js';
+export * from './learning/challenges.js';

@@ -709,6 +709,8 @@ enum AssessmentPreset {
   WEEKLY
   MONTHLY
   BOSS
+  GRAMMAR
+  VOCABULARY
 }
 
 /// Questions are chosen when the assessment is created, so there is no "generating" state.

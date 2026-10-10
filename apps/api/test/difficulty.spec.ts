@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { ClientExercise, DailySessionDto } from '@coach/contracts';
+import type { AssessmentDto, ClientExercise, DailySessionDto } from '@coach/contracts';
 import { answerFor } from './answers.js';
 import { API, createIntegrationApp, hasDatabase, resetDatabase, signedInAgent, type TestContext } from './integration.js';
 
@@ -130,6 +130,24 @@ describe.skipIf(!hasDatabase())('the difficulty setting (real PostgreSQL)', () =
       expect((await stateOf(easyId, itemId)).currentLevel).toBe('RECOGNITION');
       await answerItem(easy, itemId, true);
       expect((await stateOf(easyId, itemId)).currentLevel).toBe('RECALL');
+    });
+
+    it('an exam answer counts double: one practice answer and one exam answer are enough on easy', async () => {
+      const itemId = await itemOf(easyId, 'colleague');
+      await answerItem(easy, itemId, true); // practice: one right answer in a row
+      expect((await stateOf(easyId, itemId)).currentLevel).toBe('RECOGNITION');
+
+      const exam = (await easy.post(`${API}/assessments`).send({ kind: 'EXAM', preset: 'WEEKLY' }).expect(201)).body;
+      const dto = (await easy.post(`${API}/assessments/${exam.id}/start`).expect(200)).body as AssessmentDto;
+      const question = dto.questions.find((q) => q.exercise.items[0]?.headword === 'colleague')!;
+      expect(question).toBeDefined();
+      await easy
+        .put(`${API}/assessments/${exam.id}/questions/${question.id}/answer`)
+        .send({ response: await answerFor(ctx.prisma, question.exercise.id, true), durationMs: 4000 })
+        .expect(200);
+      await easy.post(`${API}/assessments/${exam.id}/submit`).expect(200);
+
+      expect((await stateOf(easyId, itemId)).currentLevel).toBe('RECALL'); // 1 + 2 = 3 in a row
     });
 
     it('changing the setting changes the next answers, not the history', async () => {

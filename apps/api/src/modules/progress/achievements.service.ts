@@ -25,7 +25,7 @@ export class AchievementsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async statsFor(userId: string): Promise<AchievementStats> {
-    const [sessions, gamification, itemsSeen, itemsMastered, mistakesResolved, graded] = await Promise.all([
+    const [sessions, gamification, itemsSeen, itemsMastered, mistakesResolved, graded, challengesDone] = await Promise.all([
       this.prisma.dailySession.count({ where: { userId, status: 'COMPLETED' } }),
       this.prisma.userGamification.findUnique({ where: { userId } }),
       this.prisma.userItemState.count({ where: { userId, reps: { gt: 0 }, item: { archivedAt: null } } }),
@@ -35,6 +35,7 @@ export class AchievementsService {
         where: { userId, status: 'GRADED' },
         select: { kind: true, preset: true, score: true, _count: { select: { questions: true } } },
       }),
+      this.prisma.xpEvent.count({ where: { userId, reason: 'CHALLENGE' } }),
     ]);
 
     const quizzes = graded.filter((a) => a.kind === 'QUIZ');
@@ -53,6 +54,7 @@ export class AchievementsService {
       exams: exams.length,
       bestQuiz: best(quizzes, 1),
       bestExam: best(exams, MIN_EXAM_QUESTIONS),
+      challengesDone,
       bossesWon: graded.filter((a) => a.preset === 'BOSS' && (a.score ?? 0) >= BOSS_WIN_SCORE).length,
       perfectTests: graded.filter((a) => (a.score ?? 0) >= 0.999 && a._count.questions >= MIN_PERFECT_QUESTIONS).length,
     };

@@ -18,6 +18,8 @@ export interface AchievementStats {
   perfectTests: number;
   /** Boss quizzes beaten. */
   bossesWon: number;
+  /** Daily and weekly challenges finished. */
+  challengesDone: number;
 }
 
 export interface AchievementDef {
@@ -50,6 +52,7 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   { code: 'QUIZ_80', title: 'Sharp mind', description: 'Score 80% or more on a quiz.', icon: 'zap', value: (s) => pct(s.bestQuiz), target: 80 },
   { code: 'FIRST_EXAM', title: 'Exam taker', description: 'Finish your first exam.', icon: 'graduation', value: (s) => s.exams, target: 1 },
   { code: 'EXAM_85', title: 'Exam ace', description: 'Score 85% or more on an exam of 10 questions or more.', icon: 'trophy', value: (s) => pct(s.bestExam), target: 85 },
+  { code: 'CHALLENGER', title: 'Challenger', description: 'Finish 5 daily or weekly challenges.', icon: 'target', value: (s) => s.challengesDone, target: 5 },
   { code: 'BOSS_SLAYER', title: 'Boss slayer', description: 'Beat a boss quiz.', icon: 'award', value: (s) => s.bossesWon, target: 1 },
   { code: 'BOSS_3', title: 'Unit conqueror', description: 'Beat 3 boss quizzes.', icon: 'trophy', value: (s) => s.bossesWon, target: 3 },
   { code: 'PERFECT', title: 'Flawless', description: 'Get every answer right in a quiz or exam.', icon: 'trophy', value: (s) => s.perfectTests, target: 1 },

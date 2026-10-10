@@ -5,7 +5,7 @@
 
 ## وضعیت یک‌خطی
 
-فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۴۰۸ تست). فاز ۶: Progress، Achievements و Boss Quiz تمام است؛ مانده: چالش‌ها و متن مربی AI. مرحله‌ی بعد: به ترتیب جدول «فهرست کارهای باقی‌مانده» از T4.
+فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۴۴۲ تست). فاز ۶ تمام است به‌جز متن مربی AI (به کلید OpenAI وابسته است و در T9 می‌آید). مرحله‌ی بعد: به ترتیب جدول «فهرست کارهای باقی‌مانده» از T6.
 
 ## ✅ فهرست کارهای باقی‌مانده، به ترتیب اجرا (OpenAI عمداً آخر است)
 
@@ -16,8 +16,8 @@
 | T1 | رفع باگ chip وضعیت (NEW/LEARNING/...) در Library و جزئیات آیتم | ✅ | `toItem` وضعیت را از `UserItemState` می‌خواند |
 | T2 | بازبینی ظاهر بقیه‌ی صفحه‌ها با screenshot و اصلاح | ✅ | روی اندازه‌ی موبایل بررسی شد. اصلاح‌ها: منوی «More» در نوار پایین موبایل (قبلاً به Mistakes/Progress/Profile راه نبود)؛ **نشت جواب**: چیپ بالای تمرین headword را نشان می‌داد (مثلاً در «Type the English word»)، حالا فقط نوع (Vocabulary/Grammar/...) |
 | T3 | Boss Quiz: امتحان پایان یونیت با ظاهر و XP ویژه | ✅ | preset `BOSS` (Exam از کل یونیت، ۲۰ سؤال، ۱۵ دقیقه، حداقل ۸ سؤال)؛ دکمه‌ی «Boss quiz» روی یونیت‌های با ≥۵ آیتم؛ ۸۰٪ یعنی برد و +۵۰ XP؛ صفحه‌ی ورود تیره و بنر «Boss defeated!»؛ دو achievement (Boss slayer، Unit conqueror)؛ ۶ تست |
-| T4 | چالش‌های روزانه و هفتگی | ⏭️ | |
-| T5 | Exam: برگشت به سؤال قبلی، وزن بیشتر Exam در ارتقای سطح، Exam برای Grammar و Vocabulary | ⏭️ | |
+| T4 | چالش‌های روزانه و هفتگی | ✅ | یک چالش روزانه (+۱۵ XP) و یک هفتگی (+۶۰ XP) که از روی تاریخ انتخاب می‌شوند (بدون ذخیره‌ی برنامه)؛ پاداش فقط یک‌بار در `XpEvent` (دلیل `CHALLENGE`)؛ کارت در داشبورد؛ `GET /challenges`؛ achievement «Challenger»؛ ۱۹ تست |
+| T5 | Exam: برگشت به سؤال قبلی، وزن بیشتر Exam در ارتقای سطح، Exam برای Grammar و Vocabulary | ✅ | دکمه‌ی Back در Exam (جواب قبلی برمی‌گردد و قابل تغییر است)؛ جواب درست در Exam دو برابر در ارتقای سطح حساب می‌شود (`evidenceWeight`)؛ دو preset جدید `GRAMMAR` و `VOCABULARY` برای Exam روی همه‌ی کتاب‌ها |
 | T6 | صیقل micro-interactionها | ⏭️ | |
 | T7 | فاز ۷ پایدارسازی: تست E2E، سرعت، امنیت، بکاپ دیتابیس | ⏭️ | |
 | T8 | عنوان درس‌های AEF و Collocations | ⏸️ منتظر کاربر | کاربر فهرست محتوای کتاب‌ها را می‌فرستد یا با Paste contents وارد می‌کند |
@@ -60,16 +60,15 @@
 | صفحه‌ی Progress | ✅ | `GET /progress?days=7|30|90`؛ کاشی‌های خلاصه، نمودار روزانه (SVG، قابل‌دسترس)، مقایسه‌ی این هفته با هفته‌ی قبل، توزیع وضعیت آیتم‌ها، پیشرفت بر اساس نوع، پیشرفت هر کتاب و یونیت، آزمون‌های اخیر |
 | Achievements | ✅ | ۱۸ دستاورد (قوانین در `packages/domain/src/learning/achievements.ts`)؛ ثبت یک‌بار در `UserAchievement`؛ جشن در پایان جلسه و Quiz/Exam؛ صفحه‌ی `/achievements` عقب‌افتاده‌ها را هم ثبت می‌کند |
 | گزارش هفتگی با متن مربی AI | ⏭️ | داده‌ی عددی (این هفته/هفته‌ی قبل) هست؛ متن AI نیاز به کلید دارد |
-| Challenges روزانه/هفتگی | ⏭️ | |
+| Challenges روزانه/هفتگی | ✅ | |
 | Boss Quiz (امتحان پایان unit با UI ویژه) | ✅ | |
-| Exam برای Topic / Grammar / Vocabulary | ⏭️ | |
+| Exam برای Grammar / Vocabulary | ✅ | Topic (موضوع) نه؛ فقط نوع آیتم |
 | صیقل micro-interaction | ⏭️ | |
 
 ## کارهای کوچک باقی‌مانده / بدهی فنی
 
 - chip وضعیت (NEW/LEARNING/…) در Library و جزئیات آیتم همیشه NEW نشان می‌دهد؛ `toItem` در `content.service.ts` وضعیت یادگیری کاربر را نمی‌خواند. باید از `UserItemState` پر شود.
 - برای ویرایش سوم AEF عنوان درس‌ها داده نشده؛ اگر کاربر فهرست را فرستاد در `book-templates.ts` بگذار.
-- حالت Exam: بازگشت به سؤال قبلی ندارد؛ وزن بیشتر Exam در ارتقای سطح اعمال نشده.
 
 ## یادداشت مهم درباره‌ی فهرست کتاب‌ها (A4)
 
@@ -87,7 +86,7 @@
 
 ## معماری در یک نگاه
 
-monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۴۰۸ تست در زمان نگارش).
+monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۴۴۲ تست در زمان نگارش).
 
 ## نکات اجرایی
 
@@ -102,6 +101,7 @@ monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)�
 
 - 2026-10-07: فازهای ۰ تا ۳.
 - 2026-10-08/10: فاز ۴، رفع باگ کارت‌های سفید (`cn()` با tailwind-merge)، فاز ۵.
+- 2026-10-10: T4 و T5: چالش‌ها، Exam دوطرفه (Back)، وزن Exam، Exam گرامر و لغت.
 - 2026-10-10: T1 تا T3: chip وضعیت، منوی More موبایل، رفع نشت جواب، Boss Quiz.
 - 2026-10-10: Progress و Achievements (نیمه‌ی اول فاز ۶).
 - 2026-10-10: ثبت درخواست‌های بسته‌ی A و این فایل؛ ثبت‌نام، کاتالوگ کتاب، Learn و AI، Difficulty، منوی گروه‌بندی‌شده.

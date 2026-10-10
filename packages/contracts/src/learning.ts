@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { AchievementBadge } from './progress.js';
+import type { AchievementBadge, ChallengesDto } from './progress.js';
 import type { ErrorTypeCode, ClientExercise, Verdict } from './exercises.js';
 import type { CurrentContext } from './catalog.js';
 import type { ItemType, LearningStatus } from './enums.js';
@@ -148,5 +148,6 @@ export interface DashboardDto {
   weakAreas: WeakArea[];
   reviews: { dueCount: number; upcoming: { itemId: string; headword: string; due: string }[] };
   mistakes: MistakeSummary;
+  challenges: ChallengesDto;
   totals: { items: number } & Record<Lowercase<LearningStatus>, number>;
 }

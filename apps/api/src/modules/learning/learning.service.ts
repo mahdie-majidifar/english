@@ -77,6 +77,8 @@ export interface ApplyAttemptInput {
   evaluation: Pick<Evaluation, 'verdict' | 'correctAnswerText'>;
   hintsUsed: number;
   durationMs?: number | null;
+  /** How much a right answer counts toward moving up a level: 1 normally, 2 in an exam. */
+  evidenceWeight?: number;
   /** One entry per item the exercise covers. */
   items: { itemId: string; isCorrect: boolean; score: number; errorCodes: string[] }[];
 }
@@ -147,6 +149,7 @@ export class LearningService {
         },
         result.isCorrect,
         rules,
+        input.evidenceWeight ?? 1,
       );
       const stability = srs?.stability ?? 0;
       const mastery = computeMastery({ stability, accuracyEwma, highestLevelPassed: level.highestLevelPassed });

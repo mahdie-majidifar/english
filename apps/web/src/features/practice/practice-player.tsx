@@ -194,6 +194,12 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone, assessment 
     dispatch({ type: 'next', initialValue: initialFor(next), attemptId: newAttemptId(), now: Date.now() });
   }, [state.exercises, state.index]);
 
+  const goBack = () => {
+    const previous = state.exercises[state.index - 1];
+    if (!previous) return;
+    dispatch({ type: 'back', value: state.values[state.index - 1] ?? initialFor(previous), attemptId: newAttemptId(), now: Date.now() });
+  };
+
   const skip = () => {
     const next = state.exercises[state.index + 1];
     dispatch({ type: 'skip', initialValue: initialFor(next), attemptId: newAttemptId(), now: Date.now() });
@@ -355,9 +361,16 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone, assessment 
               </p>
             )}
             <div className="flex items-center justify-between gap-3">
-              <Button variant="ghost" size="lg" onClick={skip} disabled={!answering}>
-                Skip
-              </Button>
+              <div className="flex items-center gap-1">
+                {assessment?.hideFeedback && state.index > 0 && (
+                  <Button variant="ghost" size="lg" onClick={goBack} disabled={!answering}>
+                    Back
+                  </Button>
+                )}
+                <Button variant="ghost" size="lg" onClick={skip} disabled={!answering}>
+                  Skip
+                </Button>
+              </div>
               {ui.autoSubmit ? (
                 <p className="text-base font-semibold text-mute">{ui.notReadyLabel}</p>
               ) : checking && ui.usesAi ? (

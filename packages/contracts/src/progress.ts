@@ -112,3 +112,23 @@ export interface AchievementsDto {
   /** Earned by this very request. Shown once. */
   newlyUnlocked: AchievementBadge[];
 }
+
+// ───────────── Challenges ─────────────
+
+export interface ChallengeDto {
+  kind: 'DAILY' | 'WEEKLY';
+  code: string;
+  title: string;
+  description: string;
+  progress: number;
+  target: number;
+  rewardXp: number;
+  done: boolean;
+}
+
+export interface ChallengesDto {
+  daily: ChallengeDto;
+  weekly: ChallengeDto;
+  /** Rewards paid by this very request (a challenge was just completed). */
+  justCompleted: ChallengeDto[];
+}

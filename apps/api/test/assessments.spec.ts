@@ -297,6 +297,37 @@ describe.skipIf(!hasDatabase())('quizzes and exams (real PostgreSQL)', () => {
     });
   });
 
+  describe('topic exams', () => {
+    const headwordsOf = async (id: string) => {
+      const dto = (await alice.get(`${API}/assessments/${id}`)).body as AssessmentDto;
+      return new Set(dto.questions.flatMap((q) => q.exercise.items.map((i) => i.headword)));
+    };
+
+    it('a vocabulary exam covers words from every book and leaves grammar and verbs out', async () => {
+      const res = await alice.post(`${API}/assessments`).send({ kind: 'EXAM', preset: 'VOCABULARY' }).expect(201);
+      expect(res.body.title).toBe('Exam · All vocabulary');
+      const words = await headwordsOf(res.body.id);
+      expect(words.size).toBeGreaterThanOrEqual(3);
+      expect(words.has('wear')).toBe(false); // an irregular verb is grammar
+    });
+
+    it('a grammar exam covers grammar-like items only, or says there is not enough', async () => {
+      const res = await alice.post(`${API}/assessments`).send({ kind: 'EXAM', preset: 'GRAMMAR' });
+      if (res.status === 201) {
+        const words = await headwordsOf(res.body.id);
+        expect([...words].every((w) => w === 'wear')).toBe(true);
+      } else {
+        expect(res.status).toBe(409);
+      }
+    });
+
+    it('are exams only, and say so when the learner has nothing of that kind', async () => {
+      await alice.post(`${API}/assessments`).send({ kind: 'QUIZ', preset: 'VOCABULARY' }).expect(400);
+      const res = await carol.post(`${API}/assessments`).send({ kind: 'EXAM', preset: 'GRAMMAR' }).expect(409);
+      expect(res.body.detail).toMatch(/no grammar/i);
+    });
+  });
+
   describe('a boss quiz', () => {
     let unitId: string;
 

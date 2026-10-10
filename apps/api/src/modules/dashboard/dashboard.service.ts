@@ -4,6 +4,7 @@ import { decayPriority, toLocalDate } from '@coach/domain';
 import { PrismaService } from '../../core/prisma/prisma.service.js';
 import { CatalogService } from '../catalog/catalog.service.js';
 import { MistakesService } from '../learning/mistakes.service.js';
+import { ChallengesService } from '../progress/challenges.service.js';
 import { ProgressService } from '../progress/progress.service.js';
 import { SessionsService } from '../sessions/sessions.service.js';
 
@@ -18,6 +19,7 @@ export class DashboardService {
     private readonly sessions: SessionsService,
     private readonly progress: ProgressService,
     private readonly mistakes: MistakesService,
+    private readonly challenges: ChallengesService,
   ) {}
 
   async get(userId: string): Promise<DashboardDto> {
@@ -25,6 +27,8 @@ export class DashboardService {
     const now = new Date();
     const today = toLocalDate(now, user.timezone);
 
+    // Challenges first: finishing one pays XP, which the numbers below must already include.
+    const challenges = await this.challenges.current(userId);
     const [session, activity, current, streak, xp, mistakes, weakAreas, reviews, totals] = await Promise.all([
       this.sessions.today(userId),
       this.progress.activityToday(userId, today),
@@ -50,6 +54,7 @@ export class DashboardService {
       weakAreas,
       reviews,
       mistakes,
+      challenges,
       totals,
     };
   }

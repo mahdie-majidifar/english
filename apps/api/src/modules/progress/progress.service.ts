@@ -91,6 +91,32 @@ export class ProgressService {
     return input.xp + goalXp;
   }
 
+  /**
+   * XP that is not tied to an answer or a session, such as a challenge reward. Recorded once per
+   * reason and reference. Returns what was paid now (0 when it was already paid).
+   */
+  async recordBonus(
+    tx: Tx,
+    input: { userId: string; localDate: string; reason: string; refId: string; xp: number },
+  ): Promise<number> {
+    const awarded = await tx.xpEvent.createMany({
+      data: [{ userId: input.userId, amount: input.xp, reason: input.reason, refId: input.refId }],
+      skipDuplicates: true,
+    });
+    if (awarded.count === 0) return 0;
+    await tx.dailyActivity.upsert({
+      where: { userId_localDate: { userId: input.userId, localDate: toDate(input.localDate) } },
+      create: { userId: input.userId, localDate: toDate(input.localDate), xp: input.xp },
+      update: { xp: { increment: input.xp } },
+    });
+    await tx.userGamification.upsert({
+      where: { userId: input.userId },
+      create: { userId: input.userId, totalXp: input.xp },
+      update: { totalXp: { increment: input.xp } },
+    });
+    return input.xp;
+  }
+
   /** The completion bonus. Completing a session always meets the daily goal. */
   async completeSession(
     tx: Tx,

@@ -49,12 +49,14 @@ export function adaptLevel(
   isCorrect: boolean,
   /** How many in a row move the item. The difficulty setting chooses these. */
   thresholds: { promoteAfter: number; demoteAfter: number } = { promoteAfter: 3, demoteAfter: 2 },
+  /** How much a right answer counts toward moving up. An exam answer counts double: it proves more. */
+  weight = 1,
 ): LevelState {
   let { currentLevel, levelStreak, highestLevelPassed } = state;
 
   if (isCorrect) {
     if (rank(currentLevel) > rank(highestLevelPassed)) highestLevelPassed = currentLevel;
-    levelStreak = Math.max(levelStreak, 0) + 1;
+    levelStreak = Math.max(levelStreak, 0) + weight;
     if (levelStreak >= thresholds.promoteAfter && rank(currentLevel) < LEVELS.length - 1) {
       currentLevel = LEVELS[rank(currentLevel) + 1]!;
       levelStreak = 0;

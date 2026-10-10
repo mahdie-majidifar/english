@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   ERROR_TYPES,
   PRESET_LABELS,
+  TOPIC_EXAM_TYPES,
   RESPONSE_SCHEMAS,
   type AnswerAssessment,
   type AnswerSavedDto,
@@ -488,6 +489,13 @@ export class AssessmentsService {
               empty: 'This unit has no items yet. Add some first.',
             };
       }
+      case 'GRAMMAR':
+      case 'VOCABULARY':
+        return {
+          where: { ...base, type: { in: [...TOPIC_EXAM_TYPES[preset]] } },
+          label: PRESET_LABELS[preset],
+          empty: preset === 'GRAMMAR' ? 'You have no grammar items yet.' : 'You have no vocabulary yet.',
+        };
       case 'WEAK_AREAS':
         return {
           where: {

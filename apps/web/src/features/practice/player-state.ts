@@ -25,6 +25,8 @@ export interface PlayerState {
   result: AttemptResult | null;
   error: string | null;
   steps: StepRecord[];
+  /** The answer given (or the untouched start) at each question already left, so going back can restore it. */
+  values: unknown[];
   /** When the current question was shown (ms). */
   shownAt: number;
 }
@@ -35,7 +37,9 @@ export type PlayerAction =
   | { type: 'submitted'; result: AttemptResult }
   | { type: 'failed'; message: string }
   | { type: 'next'; initialValue: unknown; attemptId: string; now: number }
-  | { type: 'skip'; initialValue: unknown; attemptId: string; now: number };
+  | { type: 'skip'; initialValue: unknown; attemptId: string; now: number }
+  /** Exams only: return to the previous question with the answer that was given there. */
+  | { type: 'back'; value: unknown; attemptId: string; now: number };
 
 export function initialState(
   exercises: ClientExercise[],
@@ -52,6 +56,7 @@ export function initialState(
     result: null,
     error: null,
     steps: [],
+    values: [],
     shownAt: now,
   };
 }
@@ -66,10 +71,12 @@ function advance(
   now: number,
 ): PlayerState {
   const steps = [...s.steps, step];
-  if (isLast(s)) return { ...s, steps, phase: 'done', result: null, error: null };
+  const values = [...s.values.slice(0, s.index), s.value];
+  if (isLast(s)) return { ...s, steps, values, phase: 'done', result: null, error: null };
   return {
     ...s,
     steps,
+    values,
     index: s.index + 1,
     phase: 'answering',
     value: initialValue,
@@ -96,6 +103,20 @@ export function playerReducer(s: PlayerState, action: PlayerAction): PlayerState
       if (s.phase !== 'feedback' || !s.result) return s;
       const step = { exerciseId: s.exercises[s.index]!.id, result: s.result };
       return advance(s, step, action.initialValue, action.attemptId, action.now);
+    }
+    case 'back': {
+      if (s.phase !== 'answering' || s.index === 0) return s;
+      return {
+        ...s,
+        steps: s.steps.slice(0, -1),
+        values: s.values.slice(0, s.index - 1),
+        index: s.index - 1,
+        value: action.value,
+        attemptId: action.attemptId,
+        result: null,
+        error: null,
+        shownAt: action.now,
+      };
     }
     case 'skip': {
       if (s.phase !== 'answering') return s;

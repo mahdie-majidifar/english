@@ -16,6 +16,8 @@ export const ASSESSMENT_DEFAULTS: Record<AssessmentKind, Partial<Record<Assessme
     WEEKLY: { questions: 20, minutes: 15 },
     MONTHLY: { questions: 30, minutes: 25 },
     BOSS: { questions: 20, minutes: 15 },
+    GRAMMAR: { questions: 15, minutes: 15 },
+    VOCABULARY: { questions: 30, minutes: 20 },
   },
 };
 

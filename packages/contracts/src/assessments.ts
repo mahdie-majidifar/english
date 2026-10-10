@@ -12,7 +12,7 @@ export const AssessmentKindSchema = z.enum(ASSESSMENT_KINDS);
 export type AssessmentKind = z.infer<typeof AssessmentKindSchema>;
 
 /** What an assessment covers. */
-export const ASSESSMENT_PRESETS = ['LESSON', 'UNIT', 'WEAK_AREAS', 'WEEKLY', 'MONTHLY', 'BOSS'] as const;
+export const ASSESSMENT_PRESETS = ['LESSON', 'UNIT', 'WEAK_AREAS', 'WEEKLY', 'MONTHLY', 'BOSS', 'GRAMMAR', 'VOCABULARY'] as const;
 export const AssessmentPresetSchema = z.enum(ASSESSMENT_PRESETS);
 export type AssessmentPreset = z.infer<typeof AssessmentPresetSchema>;
 
@@ -28,14 +28,22 @@ export const PRESET_LABELS: Record<AssessmentPreset, string> = {
   WEEKLY: 'Last 7 days',
   MONTHLY: 'Last 30 days',
   BOSS: 'Boss quiz',
+  GRAMMAR: 'All grammar',
+  VOCABULARY: 'All vocabulary',
 };
 
 /** Which presets each kind offers, in the order the page shows them. */
 export const KIND_PRESETS: Record<AssessmentKind, AssessmentPreset[]> = {
   QUIZ: ['LESSON', 'UNIT', 'WEAK_AREAS', 'WEEKLY'],
   // The boss quiz is an exam of a whole unit; it is started from the unit, not from the list of presets.
-  EXAM: ['LESSON', 'UNIT', 'WEEKLY', 'MONTHLY', 'BOSS'],
+  EXAM: ['LESSON', 'UNIT', 'GRAMMAR', 'VOCABULARY', 'WEEKLY', 'MONTHLY', 'BOSS'],
 };
+
+/** Item types each topic exam covers, across every book. */
+export const TOPIC_EXAM_TYPES = {
+  GRAMMAR: ['GRAMMAR', 'SENTENCE_PATTERN', 'IRREGULAR_VERB', 'WORD_DISTINCTION'],
+  VOCABULARY: ['VOCABULARY', 'COLLOCATION', 'EXPRESSION', 'WORD_FORMATION'],
+} as const;
 
 /** Presets the "build one" buttons offer. */
 export const LISTED_PRESETS = (kind: AssessmentKind): AssessmentPreset[] => KIND_PRESETS[kind].filter((p) => p !== 'BOSS');

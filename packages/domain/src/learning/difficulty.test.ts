@@ -60,6 +60,34 @@ describe('moving up and down with the setting', () => {
   }
 });
 
+describe('an exam answer counts double toward moving up', () => {
+  const rules = DIFFICULTY_RULES.EASY; // up after 3 right answers in a row
+
+  it('one practice answer and one exam answer are enough', () => {
+    let s = adaptLevel(start(), true, rules); // practice: streak 1
+    s = adaptLevel(s, true, rules, 2); // exam: streak 3
+    expect(s.currentLevel).toBe('RECALL');
+  });
+
+  it('but an exam answer alone is not, when three are needed', () => {
+    expect(adaptLevel(start(), true, rules, 2).currentLevel).toBe('RECOGNITION');
+  });
+
+  it('a single exam answer moves up on the standard setting', () => {
+    expect(adaptLevel(start(), true, DIFFICULTY_RULES.STANDARD, 2).currentLevel).toBe('RECALL');
+  });
+
+  it('does not make a wrong answer count any differently', () => {
+    const from = start('CONTEXT');
+    expect(adaptLevel(from, false, rules, 2).levelStreak).toBe(-1);
+    expect(adaptLevel(adaptLevel(from, false, rules, 2), false, rules, 2).currentLevel).toBe('RECALL');
+  });
+
+  it('still never goes above production', () => {
+    expect(adaptLevel(start('PRODUCTION'), true, rules, 2).currentLevel).toBe('PRODUCTION');
+  });
+});
+
 describe('usableExercises', () => {
   const e = (format: ExerciseFormat) => ({ format });
 

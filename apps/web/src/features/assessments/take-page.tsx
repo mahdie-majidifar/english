@@ -41,10 +41,10 @@ function Intro({ dto, resuming, secondsLeft, starting, error, onStart }: {
   }, [onStart]);
 
   const rules = boss
-    ? ['A whole unit in one go, with no feedback until the end.', 'Score 80% or more to beat the boss and earn 50 bonus XP.', 'You can skip a question, but you cannot go back to it.']
+    ? ['A whole unit in one go, with no feedback until the end.', 'Score 80% or more to beat the boss and earn 50 bonus XP.', 'You can skip a question, and go back to the previous one to change your answer.']
     : isQuiz
     ? ['After each answer you see right away if it was correct.', 'Wrong answers go to your mistakes so they come back later.']
-    : ['No feedback until the end, so you see what you really know.', 'You can skip a question, but you cannot go back to it.', 'Your score and the correct answers appear after you finish.'];
+    : ['No feedback until the end, so you see what you really know.', 'You can skip a question, and go back to the previous one to change your answer.', 'Your score and the correct answers appear after you finish.'];
 
   return (
     <Centered>

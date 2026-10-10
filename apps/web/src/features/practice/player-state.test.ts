@@ -95,6 +95,52 @@ describe('playerReducer', () => {
     expect(t.phase).toBe('done');
   });
 
+  it('going back restores the answer that was given there', () => {
+    let s = run(start(), { type: 'change', value: { optionId: 'a' } }, { type: 'submit' }, { type: 'submitted', result: result('correct', 1) }, next(1));
+    expect(s.index).toBe(1);
+    s = run(s, { type: 'back', value: { optionId: 'a' }, attemptId: 'att-2', now: 5 });
+    expect(s).toMatchObject({ index: 0, phase: 'answering', value: { optionId: 'a' }, attemptId: 'att-2', shownAt: 5, result: null });
+    expect(s.steps).toHaveLength(0);
+  });
+
+  it('after going back, answering again records the question once, not twice', () => {
+    let s = run(start(3), { type: 'submit' }, { type: 'submitted', result: result('correct', 1) }, next(1));
+    s = run(s, { type: 'back', value: null, attemptId: 'att-x', now: 2 });
+    s = run(s, { type: 'submit' }, { type: 'submitted', result: result('wrong', 0) }, next(3));
+    expect(s.index).toBe(1);
+    expect(s.steps.map((x) => x.exerciseId)).toEqual(['e0']);
+    expect(s.steps[0]!.result?.verdict).toBe('wrong');
+  });
+
+  it('can go back more than once, and remembers skipped questions as skipped', () => {
+    let s = run(start(4), skip(1), { type: 'change', value: 7 }, { type: 'submit' }, { type: 'submitted', result: result('correct', 1) }, next(2));
+    expect(s.index).toBe(2);
+    s = run(s, { type: 'back', value: s.values[1], attemptId: 'b1', now: 3 });
+    expect(s).toMatchObject({ index: 1, value: 7 });
+    s = run(s, { type: 'back', value: s.values[0], attemptId: 'b2', now: 4 });
+    expect(s.index).toBe(0);
+    expect(s.steps).toEqual([]);
+  });
+
+  it('cannot go back from the first question, while checking, or on the way to feedback', () => {
+    const first = start();
+    expect(run(first, { type: 'back', value: null, attemptId: 'x', now: 1 })).toBe(first);
+    let s = run(start(3), skip(1));
+    s = run(s, { type: 'submit' });
+    expect(run(s, { type: 'back', value: null, attemptId: 'x', now: 1 })).toBe(s); // checking
+    s = run(s, { type: 'submitted', result: result('correct', 1) });
+    expect(run(s, { type: 'back', value: null, attemptId: 'x', now: 1 })).toBe(s); // feedback
+  });
+
+  it('the last question still finishes the run after going back and forward', () => {
+    let s = run(start(2), { type: 'submit' }, { type: 'submitted', result: result('correct', 1) }, next(1));
+    s = run(s, { type: 'back', value: null, attemptId: 'b', now: 2 });
+    s = run(s, { type: 'submit' }, { type: 'submitted', result: result('correct', 1) }, next(3));
+    s = run(s, { type: 'submit' }, { type: 'submitted', result: result('correct', 1) }, next(4));
+    expect(s.phase).toBe('done');
+    expect(s.steps).toHaveLength(2);
+  });
+
   it('an empty run is already done', () => {
     expect(start(0).phase).toBe('done');
   });

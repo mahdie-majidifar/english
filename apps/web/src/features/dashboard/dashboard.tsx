@@ -1,11 +1,12 @@
 'use client';
 
-import { ArrowRight, Check, Clock, Dumbbell, Flag, Flame, Play, RotateCw, Star, Target } from 'lucide-react';
+import { ArrowRight, Check, Clock, Dumbbell, Flag, Flame, Play, RotateCw, Star, Target, Zap } from 'lucide-react';
 import Link from 'next/link';
-import type { DashboardDto, SelectionReason } from '@coach/contracts';
+import type { ChallengeDto, DashboardDto, SelectionReason } from '@coach/contracts';
 import { buttonClass } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Spark } from '@/components/ui/spark';
+import { cn } from '@/lib/cn';
 import { errorMessage } from '@/lib/errors';
 import { CurrentFocus, GettingStarted } from './getting-started';
 import { useDashboard } from './hooks';
@@ -82,6 +83,43 @@ function TodayCard({ data }: { data: DashboardDto }) {
         {goalMet ? 'Daily goal reached' : `${Math.min(activeMinutes, goalMinutes)} of ${goalMinutes} min today`}
       </p>
     </Card>
+  );
+}
+
+function Challenge({ challenge, fresh }: { challenge: ChallengeDto; fresh: boolean }) {
+  const pct = Math.round((challenge.progress / challenge.target) * 100);
+  return (
+    <Card className={cn('space-y-3 p-5', challenge.done && 'border-good/40 bg-good-soft/60', fresh && 'animate-[pop-in_420ms_ease-out]')}>
+      <div className="flex items-start gap-3">
+        <span className={cn('grid size-11 shrink-0 place-items-center rounded-2xl', challenge.done ? 'bg-good text-white' : 'bg-brand-soft text-brand')}>
+          {challenge.done ? <Check className="size-6" strokeWidth={3} /> : <Zap className="size-6" />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold uppercase tracking-wider text-mute">{challenge.kind === 'DAILY' ? 'Today’s challenge' : 'This week'}</p>
+          <p className="font-heading text-lg font-extrabold leading-tight tracking-tight">{challenge.title}</p>
+          <p className="text-sm text-mute">{challenge.description}</p>
+        </div>
+        <span className="shrink-0 rounded-full bg-xp/20 px-2.5 py-1 text-sm font-extrabold text-[#8a6500]">+{challenge.rewardXp} XP</span>
+      </div>
+      <div>
+        <div className="h-2.5 overflow-hidden rounded-full bg-subtle" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={challenge.title}>
+          <div className={cn('h-full rounded-full transition-[width] duration-500', challenge.done ? 'bg-good' : 'bg-brand')} style={{ width: `${pct}%` }} />
+        </div>
+        <p className="mt-1 text-sm font-semibold text-mute">
+          {challenge.done ? 'Done. Reward paid.' : `${challenge.progress} of ${challenge.target}`}
+        </p>
+      </div>
+    </Card>
+  );
+}
+
+function Challenges({ data }: { data: DashboardDto }) {
+  const fresh = new Set(data.challenges.justCompleted.map((c) => c.code));
+  return (
+    <section aria-label="Challenges" className="grid gap-4 sm:grid-cols-2">
+      <Challenge challenge={data.challenges.daily} fresh={fresh.has(data.challenges.daily.code)} />
+      <Challenge challenge={data.challenges.weekly} fresh={fresh.has(data.challenges.weekly.code)} />
+    </section>
   );
 }
 
@@ -239,6 +277,7 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       <TodayCard data={data} />
+      <Challenges data={data} />
       <StatCards data={data} />
       <PracticeShortcuts data={data} />
       <CurrentFocus />
