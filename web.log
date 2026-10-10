@@ -1,39 +1,31 @@
 ▲ Next.js 16.4.0 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://172.19.32.1:3000
-✓ Ready in 417ms
-✓ Running next.config.ts took 39ms
+✓ Ready in 402ms
+✓ Running next.config.ts took 42ms
 
- GET / 200 in 438ms (next.js: 201ms, proxy.ts: 5ms, application-code: 233ms)
- GET / 200 in 40ms (next.js: 4ms, proxy.ts: 4ms, application-code: 33ms)
-✓ Compiled in 174ms
- GET / 200 in 317ms (next.js: 233ms, proxy.ts: 6ms, application-code: 77ms)
- GET /session 200 in 128ms (next.js: 40ms, proxy.ts: 3ms, application-code: 85ms)
- GET /mistakes 200 in 89ms (next.js: 49ms, proxy.ts: 5ms, application-code: 35ms)
-✓ Compiled in 265ms
- GET /mistakes 200 in 59ms (next.js: 26ms, proxy.ts: 3ms, application-code: 30ms)
- GET / 200 in 41ms (next.js: 8ms, proxy.ts: 3ms, application-code: 29ms)
- GET /practice 200 in 91ms (next.js: 42ms, proxy.ts: 4ms, application-code: 45ms)
-✓ Compiled in 54ms
- GET /practice 200 in 87ms (next.js: 49ms, proxy.ts: 5ms, application-code: 33ms)
-✓ Compiled in 355ms
-✓ Compiled in 228ms
- GET /practice 200 in 149ms (next.js: 121ms, proxy.ts: 4ms, application-code: 24ms)
- GET /practice 200 in 320ms (next.js: 286ms, proxy.ts: 3ms, application-code: 30ms)
- GET /practice 200 in 28ms (next.js: 4ms, proxy.ts: 4ms, application-code: 20ms)
-✓ Compiled in 515ms
- GET /practice 200 in 27ms (next.js: 3ms, proxy.ts: 3ms, application-code: 21ms)
- GET /assessments 200 in 420ms (next.js: 378ms, proxy.ts: 4ms, application-code: 38ms)
- GET /assessments/f01189cb-0983-45df-9993-ba6ac8b1a758/take 200 in 739ms (next.js: 710ms, proxy.ts: 3ms, application-code: 25ms)
- GET /assessments/f01189cb-0983-45df-9993-ba6ac8b1a758 200 in 759ms (next.js: 730ms, proxy.ts: 3ms, application-code: 26ms)
- GET /assessments/f01189cb-0983-45df-9993-ba6ac8b1a758 200 in 37ms (next.js: 16ms, proxy.ts: 3ms, application-code: 18ms)
- GET /assessments/72c2a896-e409-4a65-acc4-8a7de77c0917/take 200 in 78ms (next.js: 34ms, proxy.ts: 3ms, application-code: 41ms)
- GET /assessments/72c2a896-e409-4a65-acc4-8a7de77c0917 200 in 35ms (next.js: 11ms, proxy.ts: 3ms, application-code: 21ms)
- GET /assessments/72c2a896-e409-4a65-acc4-8a7de77c0917 200 in 23ms (next.js: 5ms, proxy.ts: 3ms, application-code: 15ms)
- GET /assessments/3090f5b4-104a-469e-9536-a66029d20d56/take 200 in 45ms (next.js: 10ms, proxy.ts: 3ms, application-code: 33ms)
- GET /assessments/3090f5b4-104a-469e-9536-a66029d20d56/take 200 in 43ms (next.js: 10ms, proxy.ts: 3ms, application-code: 30ms)
- GET /assessments/3090f5b4-104a-469e-9536-a66029d20d56/take 200 in 46ms (next.js: 11ms, proxy.ts: 3ms, application-code: 32ms)
- GET /assessments/3090f5b4-104a-469e-9536-a66029d20d56 200 in 44ms (next.js: 12ms, proxy.ts: 4ms, application-code: 28ms)
- GET /assessments/3090f5b4-104a-469e-9536-a66029d20d56 200 in 33ms (next.js: 5ms, proxy.ts: 5ms, application-code: 22ms)
- GET /assessments/3090f5b4-104a-469e-9536-a66029d20d56 200 in 26ms (next.js: 4ms, proxy.ts: 3ms, application-code: 20ms)
- GET /assessments/72c2a896-e409-4a65-acc4-8a7de77c0917 200 in 52ms (next.js: 12ms, proxy.ts: 4ms, application-code: 36ms)
+ GET /assessments/72c2a896-e409-4a65-acc4-8a7de77c0917 200 in 1234ms (next.js: 823ms, proxy.ts: 151ms, application-code: 260ms)
+ GET /login 200 in 245ms (next.js: 142ms, proxy.ts: 4ms, application-code: 99ms)
+ GET /login 200 in 54ms (next.js: 3ms, proxy.ts: 3ms, application-code: 48ms)
+ GET / 200 in 130ms (next.js: 108ms, proxy.ts: 3ms, application-code: 19ms)
+ GET /practice 200 in 90ms (next.js: 65ms, proxy.ts: 7ms, application-code: 19ms)
+ GET /practice/play?scope=current&count=10 200 in 211ms (next.js: 187ms, proxy.ts: 3ms, application-code: 21ms)
+ GET /practice 200 in 48ms (next.js: 26ms, proxy.ts: 3ms, application-code: 19ms)
+ GET /mistakes 200 in 94ms (next.js: 74ms, proxy.ts: 3ms, application-code: 16ms)
+ GET /library 200 in 143ms (next.js: 122ms, proxy.ts: 3ms, application-code: 18ms)
+ GET /library?type=VOCABULARY 200 in 31ms (next.js: 3ms, proxy.ts: 3ms, application-code: 25ms)
+ GET /library?type=COLLOCATION 200 in 21ms (next.js: 3ms, proxy.ts: 3ms, application-code: 15ms)
+ GET /library?type=COLLOCATION 200 in 20ms (next.js: 4ms, proxy.ts: 3ms, application-code: 14ms)
+ GET / 200 in 24ms (next.js: 8ms, proxy.ts: 3ms, application-code: 14ms)
+ GET /books/87d7c7a2-0815-4968-85d8-a946afd2b2f3 200 in 5.2s (next.js: 5.1s, proxy.ts: 4ms, application-code: 22ms)
+✓ Compiled in 2.4s
+✓ Compiled in 44ms
+✓ Compiled in 663ms
+ GET /assessments/72c2a896-e409-4a65-acc4-8a7de77c0917 200 in 422ms (next.js: 321ms, proxy.ts: 6ms, application-code: 94ms)
+ GET /books/87d7c7a2-0815-4968-85d8-a946afd2b2f3 200 in 661ms (next.js: 367ms, proxy.ts: 237ms, application-code: 57ms)
+ GET /assessments/72c2a896-e409-4a65-acc4-8a7de77c0917 200 in 91ms (next.js: 15ms, proxy.ts: 16ms, application-code: 60ms)
+ GET /books/87d7c7a2-0815-4968-85d8-a946afd2b2f3 200 in 82ms (next.js: 38ms, proxy.ts: 10ms, application-code: 33ms)
+✓ Compiled in 364ms
+ GET /login 200 in 297ms (next.js: 196ms, proxy.ts: 3ms, application-code: 98ms)
+ GET /register 200 in 581ms (next.js: 511ms, proxy.ts: 3ms, application-code: 66ms)
+ GET / 200 in 45ms (next.js: 20ms, proxy.ts: 6ms, application-code: 18ms)

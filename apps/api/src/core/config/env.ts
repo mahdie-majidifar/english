@@ -22,6 +22,9 @@ const EnvSchema = z.object({
   /** mock runs a tiny local stand-in for the model (no key, no network). Never chosen automatically. */
   AI_PROVIDER: z.preprocess(emptyToUndefined, z.enum(['openai', 'mock']).optional()),
 
+  /** Anyone can create an account. Switch off (false) to close sign-ups, e.g. on a shared server. */
+  ALLOW_REGISTRATION: z.preprocess(emptyToUndefined, z.enum(['true', 'false']).default('true')).transform((v) => v === 'true'),
+
   /** AI is optional: without a key everything works except automatic analysis of teacher notes. */
   OPENAI_API_KEY: optionalString,
   /** Point this at a proxy or compatible gateway if api.openai.com is not directly reachable. */

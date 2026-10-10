@@ -6,7 +6,7 @@ const SESSION_COOKIE = 'ec_s';
 export function proxy(request: NextRequest) {
   const hasSession = request.cookies.has(SESSION_COOKIE);
   const { pathname } = request.nextUrl;
-  const isLogin = pathname === '/login';
+  const isLogin = pathname === '/login' || pathname === '/register';
 
   if (!hasSession && !isLogin) {
     const url = new URL('/login', request.url);

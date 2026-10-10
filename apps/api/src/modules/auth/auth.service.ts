@@ -2,10 +2,11 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import type { AuthUser } from '@coach/contracts';
+import type { AuthUser, RegisterRequest } from '@coach/contracts';
 import type { AccessTokenPayload } from '../../core/auth/auth.types.js';
 import { AppConfig } from '../../core/config/env.js';
-import { DomainError, invalidCredentials, unauthenticated } from '../../core/http/domain-error.js';
+import { DomainError, forbidden, invalidCredentials, unauthenticated } from '../../core/http/domain-error.js';
+import { isUniqueViolation } from '../../core/prisma/errors.js';
 import { PrismaService } from '../../core/prisma/prisma.service.js';
 import type { User } from '../../generated/prisma/client.js';
 
@@ -49,6 +50,31 @@ export class AuthService {
     const valid = await argon2.verify(hash, password).catch(() => false);
     if (!user || !valid) throw invalidCredentials();
     return this.issueSession(user, randomUUID(), userAgent);
+  }
+
+  /** Creates an account and signs it in. */
+  async register(request: RegisterRequest, userAgent?: string): Promise<IssuedSession> {
+    if (!this.config.env.ALLOW_REGISTRATION) throw forbidden('Sign-ups are closed.');
+    const email = normalizeEmail(request.email);
+    const taken = () => new DomainError('CONFLICT', 409, 'An account with this email already exists. Try signing in.');
+    if (await this.prisma.user.findUnique({ where: { email }, select: { id: true } })) throw taken();
+
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          email,
+          passwordHash: await argon2.hash(request.password),
+          displayName: request.displayName,
+          ...(request.timezone ? { timezone: request.timezone } : {}),
+          profile: { create: {} },
+        },
+      });
+      return await this.issueSession(user, randomUUID(), userAgent);
+    } catch (error) {
+      // Two sign-ups with the same email at once: the second one loses.
+      if (isUniqueViolation(error)) throw taken();
+      throw error;
+    }
   }
 
   async refresh(rawToken: string | undefined, userAgent?: string): Promise<IssuedSession> {

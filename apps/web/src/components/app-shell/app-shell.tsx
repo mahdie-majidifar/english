@@ -8,6 +8,7 @@ import type { AuthUser } from '@coach/contracts';
 import { BrandMark } from '@/components/ui/spark';
 import { useLogout } from '@/features/auth/use-auth';
 import { cn } from '@/lib/cn';
+import { AiNotice } from './ai-notice';
 import { AuthGate } from './auth-gate';
 import { NAV_ITEMS, type NavItem } from './nav';
 
@@ -90,7 +91,10 @@ function Shell({ user, children }: { user: AuthUser; children: ReactNode }) {
       </aside>
 
       <main className="min-w-0 px-5 pb-28 pt-8 sm:px-8 lg:pb-12 lg:pt-10">
-        <div className="mx-auto w-full max-w-5xl">{children}</div>
+        <div className="mx-auto w-full max-w-5xl">
+          <AiNotice />
+          {children}
+        </div>
       </main>
 
       <nav

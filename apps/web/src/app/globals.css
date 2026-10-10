@@ -85,6 +85,17 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-fa: var(--font-vazirmatn), Tahoma, sans-serif;
 
+  /* A calmer type scale (about 10% under Tailwind's defaults). Nothing is under 12px. */
+  --text-xs: 0.78rem;
+  --text-sm: 0.84rem;
+  --text-base: 0.92rem;
+  --text-lg: 1rem;
+  --text-xl: 1.1rem;
+  --text-2xl: 1.28rem;
+  --text-3xl: 1.55rem;
+  --text-4xl: 1.85rem;
+  --text-5xl: 2.3rem;
+
   --radius-card: 1.5rem;
   --radius-control: 1rem;
 
@@ -108,6 +119,27 @@ body {
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Anything you can press shows a pointing hand; disabled things say so. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="radio"],
+  [role="tab"],
+  a[href],
+  summary,
+  select,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"] {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }
 
 /* Persian is always its own RTL block: larger, more open. */

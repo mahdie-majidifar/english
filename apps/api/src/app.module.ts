@@ -11,6 +11,7 @@ import { ContentModule } from './modules/content/content.module.js';
 import { ExercisesModule } from './modules/exercises/exercises.module.js';
 import { LearningModule } from './modules/learning/learning.module.js';
 import { ProgressModule } from './modules/progress/progress.module.js';
+import { SystemModule } from './modules/system/system.module.js';
 import { AssessmentsModule } from './modules/assessments/assessments.module.js';
 import { DashboardModule } from './modules/dashboard/dashboard.module.js';
 import { SessionsModule } from './modules/sessions/sessions.module.js';
@@ -40,6 +41,7 @@ import { UsersModule } from './modules/users/users.module.js';
     SessionsModule,
     DashboardModule,
     AssessmentsModule,
+    SystemModule,
   ],
   controllers: [HealthController],
   providers: [

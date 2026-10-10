@@ -25,6 +25,6 @@ import { UnconfiguredProvider } from './providers/unconfigured.provider.js';
     AnswerEvaluatorService,
     ExerciseGeneratorService,
   ],
-  exports: [AiGateway, ContentParserService, AnswerEvaluatorService, ExerciseGeneratorService],
+  exports: [LLM_PROVIDER, AiGateway, ContentParserService, AnswerEvaluatorService, ExerciseGeneratorService],
 })
 export class AiModule {}

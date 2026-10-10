@@ -1,7 +1,13 @@
 import { Body, Controller, Get, HttpCode, Post, Req, Res } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { CookieOptions, Request, Response } from 'express';
-import { LoginRequestSchema, type LoginRequest, type MeResponse } from '@coach/contracts';
+import {
+  LoginRequestSchema,
+  RegisterRequestSchema,
+  type LoginRequest,
+  type MeResponse,
+  type RegisterRequest,
+} from '@coach/contracts';
 import {
   ACCESS_COOKIE,
   REFRESH_COOKIE,
@@ -31,6 +37,19 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<MeResponse> {
     const session = await this.auth.login(body.email, body.password, req.headers['user-agent']);
+    this.setSessionCookies(res, session);
+    return { user: session.user };
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('register')
+  async register(
+    @Body(new ZodValidationPipe(RegisterRequestSchema)) body: RegisterRequest,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<MeResponse> {
+    const session = await this.auth.register(body, req.headers['user-agent']);
     this.setSessionCookies(res, session);
     return { user: session.user };
   }
