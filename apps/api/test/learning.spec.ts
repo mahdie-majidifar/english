@@ -338,6 +338,11 @@ describe.skipIf(!hasDatabase())('learning loop: scheduling, mistakes, daily sess
 
       const events = await ctx.prisma.xpEvent.findMany({ where: { userId: aliceId, reason: { in: ['SESSION', 'GOAL'] } } });
       expect(events.map((e) => e.reason).sort()).toEqual(['GOAL', 'SESSION']);
+      // What the summary shows is everything earned: answers, session bonus and goal bonus.
+      const bonuses = events.reduce((sum, e) => sum + e.amount, 0);
+      const attempts = await ctx.prisma.exerciseAttempt.findMany({ where: { sessionItem: { sessionId: session.id } } });
+      const answersXp = attempts.reduce((sum, a) => sum + ((a.evaluation as { xp?: number }).xp ?? 0), 0);
+      expect(res.body.xpEarned).toBe(bonuses + answersXp);
       const activity = await ctx.prisma.dailyActivity.findFirstOrThrow({ where: { userId: aliceId, sessionsCompleted: 1 } });
       expect(activity.goalMet).toBe(true);
     });

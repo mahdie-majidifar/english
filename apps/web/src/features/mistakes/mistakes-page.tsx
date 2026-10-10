@@ -55,9 +55,15 @@ function MistakeCard({ mistake }: { mistake: MistakeDto }) {
 
       {last && (
         <p className="rounded-2xl bg-subtle px-4 py-3 text-lg">
-          <span className="text-bad-edge line-through">{last.userAnswer || '(empty)'}</span>
-          <span className="mx-2 text-mute">→</span>
-          <span className="font-semibold text-good-edge">{last.expectedAnswer}</span>
+          {last.expectedAnswer ? (
+            <>
+              <span className="text-bad-edge line-through">{last.userAnswer || '(empty)'}</span>
+              <span className="mx-2 text-mute">→</span>
+              <span className="font-semibold text-good-edge">{last.expectedAnswer}</span>
+            </>
+          ) : (
+            <span className="font-semibold text-bad-edge">{last.userAnswer || '(empty)'}</span>
+          )}
         </p>
       )}
 

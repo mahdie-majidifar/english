@@ -68,6 +68,7 @@ export class ProgressService {
     tx: Tx,
     input: { userId: string; localDate: string; sessionId: string; answered: number; wrong: number },
   ): Promise<{ bonusXp: number }> {
+    // `bonusXp` covers everything this call paid: the session bonus plus the daily-goal bonus if it was reached now.
     const bonusXp = xpForSession({ answered: input.answered, wrong: input.wrong });
     const awarded = await tx.xpEvent.createMany({
       data: [{ userId: input.userId, amount: bonusXp, reason: 'SESSION', refId: input.sessionId }],
@@ -85,20 +86,20 @@ export class ProgressService {
       create: { userId: input.userId, totalXp: bonusXp },
       update: { totalXp: { increment: bonusXp } },
     });
-    await this.checkGoal(tx, input.userId, input.localDate);
-    return { bonusXp };
+    const goalXp = await this.checkGoal(tx, input.userId, input.localDate);
+    return { bonusXp: bonusXp + goalXp };
   }
 
   /** Marks the day as a goal day (once), pays the goal bonus, and moves the streak forward. */
-  private async checkGoal(tx: Tx, userId: string, localDate: string): Promise<void> {
+  private async checkGoal(tx: Tx, userId: string, localDate: string): Promise<number> {
     const activity = await tx.dailyActivity.findUnique({
       where: { userId_localDate: { userId, localDate: toDate(localDate) } },
     });
-    if (!activity || activity.goalMet) return;
+    if (!activity || activity.goalMet) return 0;
 
     const profile = await tx.userProfile.findUnique({ where: { userId }, select: { dailyGoalMinutes: true } });
     const goalSeconds = (profile?.dailyGoalMinutes ?? 10) * 60;
-    if (activity.activeSeconds < goalSeconds && activity.sessionsCompleted === 0) return;
+    if (activity.activeSeconds < goalSeconds && activity.sessionsCompleted === 0) return 0;
 
     await tx.dailyActivity.update({
       where: { userId_localDate: { userId, localDate: toDate(localDate) } },
@@ -132,6 +133,7 @@ export class ProgressService {
       create: { userId, currentStreak: next.currentStreak, longestStreak: next.longestStreak, lastStreakDate: toDate(localDate) },
       update: { currentStreak: next.currentStreak, longestStreak: next.longestStreak, lastStreakDate: toDate(localDate) },
     });
+    return bonus.count > 0 ? DAILY_GOAL_XP : 0;
   }
 
   async streak(userId: string, today: string): Promise<StreakInfo & { goalMetToday: boolean }> {
