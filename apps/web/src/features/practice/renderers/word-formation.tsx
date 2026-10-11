@@ -18,7 +18,7 @@ export function WordFormation({ content, value, onChange, locked, result, onEnte
         </p>
         <div className="flex items-center gap-3 text-mute">
           <ArrowRight aria-hidden className="size-6 rotate-90 sm:rotate-0" />
-          <span className="rounded-full bg-formation/20 px-4 py-1.5 font-heading text-base font-bold text-[#9a6200]">
+          <span className="rounded-full bg-formation/20 px-4 py-1.5 font-heading text-base font-bold text-amber-ink">
             {content.targetPos}
           </span>
           <ArrowRight aria-hidden className="size-6 rotate-90 sm:rotate-0" />
@@ -38,9 +38,9 @@ export function WordFormation({ content, value, onChange, locked, result, onEnte
           className={cn(
             'h-16 w-full min-w-0 rounded-2xl border-2 bg-card px-4 text-center font-heading text-2xl font-bold outline-none transition-[border-color,box-shadow,background-color] sm:w-64',
             !result && 'border-line focus:border-brand focus:shadow-[0_0_0_4px_var(--brand-soft)]',
-            result?.verdict === 'correct' && 'border-good bg-good-soft text-good-edge',
-            result?.verdict === 'almost' && 'border-flame bg-flame/10 text-[#b36b00]',
-            result?.verdict === 'wrong' && 'animate-wrong border-bad bg-bad-soft text-bad-edge',
+            result?.verdict === 'correct' && 'border-good bg-good-soft text-good-ink',
+            result?.verdict === 'almost' && 'border-flame bg-flame/10 text-amber-ink',
+            result?.verdict === 'wrong' && 'animate-wrong border-bad bg-bad-soft text-bad-ink',
           )}
         />
       </div>

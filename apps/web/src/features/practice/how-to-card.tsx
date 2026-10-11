@@ -37,7 +37,7 @@ export function HowToCard({ format, onClose }: { format: ExerciseFormat; onClose
           <ol className="mt-3 space-y-2">
             {howTo.steps.map((step, i) => (
               <li key={step} className="flex gap-3 text-base leading-snug">
-                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-white text-sm font-bold text-brand">{i + 1}</span>
+                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-card text-sm font-bold text-brand">{i + 1}</span>
                 <span>{step}</span>
               </li>
             ))}
@@ -47,12 +47,12 @@ export function HowToCard({ format, onClose }: { format: ExerciseFormat; onClose
           type="button"
           onClick={onClose}
           aria-label="Got it, hide this"
-          className="grid size-9 shrink-0 place-items-center rounded-lg text-mute transition-colors hover:bg-white hover:text-ink"
+          className="grid size-9 shrink-0 place-items-center rounded-lg text-mute transition-colors hover:bg-card hover:text-ink"
         >
           <X className="size-5" />
         </button>
       </div>
-      <button type="button" onClick={onClose} className="mt-4 rounded-xl bg-white px-4 py-2 text-base font-semibold text-brand hover:bg-white/80">
+      <button type="button" onClick={onClose} className="mt-4 rounded-xl bg-card px-4 py-2 text-base font-semibold text-brand hover:bg-card/80">
         Got it
       </button>
     </section>

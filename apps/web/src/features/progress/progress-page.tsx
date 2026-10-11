@@ -46,7 +46,7 @@ function Delta({ now, before, unit = '' }: { now: number; before: number; unit?:
   const diff = now - before;
   const Icon = diff > 0 ? ArrowUp : diff < 0 ? ArrowDown : Minus;
   return (
-    <span className={cn('inline-flex items-center gap-1 text-sm font-semibold', diff > 0 ? 'text-good-edge' : diff < 0 ? 'text-bad-edge' : 'text-mute')}>
+    <span className={cn('inline-flex items-center gap-1 text-sm font-semibold', diff > 0 ? 'text-good-ink' : diff < 0 ? 'text-bad-ink' : 'text-mute')}>
       <Icon className="size-3.5" strokeWidth={3} />
       {diff === 0 ? 'same' : `${Math.abs(diff)}${unit}`}
     </span>
@@ -263,16 +263,16 @@ export function ProgressPage() {
       {query.isPending ? (
         <div className="h-96 animate-pulse rounded-card bg-subtle" aria-busy />
       ) : query.isError || !p ? (
-        <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-edge">
+        <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-ink">
           {errorMessage(query.error, 'We could not load your progress.')}
         </Card>
       ) : (
         <>
           <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Tile icon={<Clock className="size-6" />} tone="bg-brand-soft text-brand" label={`practised in ${p.days} days`} value={`${p.totals.activeMinutes} min`} hint={`${p.totals.activeDays} active day${p.totals.activeDays === 1 ? '' : 's'}`} />
-            <Tile icon={<Target className="size-6" />} tone="bg-good-soft text-good-edge" label="of your answers were right" value={pct(p.totals.accuracy)} hint={`${p.totals.attempts} answers`} />
+            <Tile icon={<Target className="size-6" />} tone="bg-good-soft text-good-ink" label="of your answers were right" value={pct(p.totals.accuracy)} hint={`${p.totals.attempts} answers`} />
             <Tile icon={<Flame className="size-6" fill="currentColor" />} tone="bg-flame/15 text-flame" label="day streak" value={String(p.streak.current)} hint={`best ${p.streak.longest}`} />
-            <Tile icon={<Star className="size-6" fill="currentColor" />} tone="bg-xp/20 text-[#b88700]" label={`level ${p.level.level}`} value={`${p.level.total} XP`} hint={`${p.level.intoLevel}/${p.level.forLevel} to next level`} />
+            <Tile icon={<Star className="size-6" fill="currentColor" />} tone="bg-xp/20 text-gold-ink" label={`level ${p.level.level}`} value={`${p.level.total} XP`} hint={`${p.level.intoLevel}/${p.level.forLevel} to next level`} />
           </section>
 
           <Card className="space-y-3 p-5">
@@ -336,7 +336,7 @@ export function ProgressPage() {
                             <p className="truncate font-heading text-lg font-bold">{a.title}</p>
                             <p className="text-sm text-mute">{new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(new Date(a.gradedAt))}</p>
                           </div>
-                          <span className={cn('rounded-full px-3 py-1 font-heading text-base font-extrabold', a.score >= 0.8 ? 'bg-good-soft text-good-edge' : a.score >= 0.5 ? 'bg-brand-soft text-brand' : 'bg-bad-soft text-bad-edge')}>
+                          <span className={cn('rounded-full px-3 py-1 font-heading text-base font-extrabold', a.score >= 0.8 ? 'bg-good-soft text-good-ink' : a.score >= 0.5 ? 'bg-brand-soft text-brand' : 'bg-bad-soft text-bad-ink')}>
                             {pct(a.score)}
                           </span>
                         </Card>

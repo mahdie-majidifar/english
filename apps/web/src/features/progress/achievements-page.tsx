@@ -30,7 +30,7 @@ export function AchievementsPage() {
       {query.isPending ? (
         <div className="h-72 animate-pulse rounded-card bg-subtle" aria-busy />
       ) : query.isError ? (
-        <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-edge">
+        <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-ink">
           {errorMessage(query.error)}
         </Card>
       ) : (
@@ -48,7 +48,7 @@ export function AchievementsPage() {
                       <p className={cn('font-heading text-lg font-extrabold leading-tight', !earned && 'text-mute')}>{a.title}</p>
                       <p className="text-sm text-mute">{a.description}</p>
                       {earned ? (
-                        <p className="inline-flex items-center gap-1.5 pt-1 text-sm font-semibold text-good-edge">
+                        <p className="inline-flex items-center gap-1.5 pt-1 text-sm font-semibold text-good-ink">
                           <Check className="size-4" strokeWidth={3} /> Earned {when(a.unlockedAt!)}
                         </p>
                       ) : (

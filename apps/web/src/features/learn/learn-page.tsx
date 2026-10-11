@@ -50,8 +50,8 @@ function ExplanationView({ explanation }: { explanation: Explanation }) {
             {explanation.commonMistakes.map((m) => (
               <li key={m.wrong} className="rounded-2xl bg-bad-soft/60 px-4 py-3">
                 <p className="text-base">
-                  <span className="text-bad-edge line-through">{m.wrong}</span> <span className="text-mute">→</span>{' '}
-                  <span className="font-semibold text-good-edge">{m.right}</span>
+                  <span className="text-bad-ink line-through">{m.wrong}</span> <span className="text-mute">→</span>{' '}
+                  <span className="font-semibold text-good-ink">{m.right}</span>
                 </p>
                 {m.noteFa && <p className="fa text-base text-mute">{m.noteFa}</p>}
               </li>
@@ -85,7 +85,7 @@ function ExplainPanel({ itemId }: { itemId: string }) {
             disabled={explain.isPending}
             aria-label="Write it again"
             title="Write it again"
-            className="grid size-9 place-items-center rounded-control text-mute hover:bg-white hover:text-ink"
+            className="grid size-9 place-items-center rounded-control text-mute hover:bg-card hover:text-ink"
           >
             <RotateCw className={cn('size-4', explain.isPending && 'animate-spin')} />
           </button>
@@ -101,7 +101,7 @@ function ExplainPanel({ itemId }: { itemId: string }) {
       )}
 
       {explain.isError && (
-        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
           {errorMessage(explain.error)}
         </p>
       )}
@@ -188,7 +188,7 @@ export function LearnPage() {
   if (context.isError) {
     return (
       <Card role="alert" className="border-bad/40 bg-bad-soft">
-        <p className="text-lg font-semibold text-bad-edge">{errorMessage(context.error, 'We could not open this.')}</p>
+        <p className="text-lg font-semibold text-bad-ink">{errorMessage(context.error, 'We could not open this.')}</p>
         <Link href="/books" className="mt-3 inline-block font-semibold underline">
           Back to your books
         </Link>
@@ -230,7 +230,7 @@ export function LearnPage() {
         <Empty lessonId={ctx.lessonId} title={ctx.title} needsTopic={ctx.needsTopic} />
       ) : done ? (
         <Card className="grid place-items-center gap-4 py-14 text-center">
-          <span className="grid size-16 place-items-center rounded-2xl bg-good-soft text-good-edge">
+          <span className="grid size-16 place-items-center rounded-2xl bg-good-soft text-good-ink">
             <PartyPopper className="size-8" />
           </span>
           <h2 className="font-heading text-3xl font-extrabold tracking-tight">You went through all {list.length}</h2>

@@ -9,9 +9,9 @@ import { cn } from '@/lib/cn';
 const PRAISE = ['Exactly right!', 'Nice work!', 'You got it!', 'Well done!', 'Spot on!'];
 
 const STYLE = {
-  correct: { box: 'border-good/40 bg-good-soft', icon: 'bg-good text-white', title: 'text-good-edge', button: 'good' as const },
-  almost: { box: 'border-flame/40 bg-flame/10', icon: 'bg-flame text-white', title: 'text-[#b36b00]', button: 'primary' as const },
-  wrong: { box: 'border-bad/40 bg-bad-soft', icon: 'bg-bad text-white', title: 'text-bad-edge', button: 'bad' as const },
+  correct: { box: 'border-good/40 bg-good-soft', icon: 'bg-good text-white', title: 'text-good-ink', button: 'good' as const },
+  almost: { box: 'border-flame/40 bg-flame/10', icon: 'bg-flame text-white', title: 'text-amber-ink', button: 'primary' as const },
+  wrong: { box: 'border-bad/40 bg-bad-soft', icon: 'bg-bad text-white', title: 'text-bad-ink', button: 'bad' as const },
 };
 
 interface FeedbackPanelProps {
@@ -50,7 +50,7 @@ export function FeedbackPanel({ result, isLast, onContinue }: FeedbackPanelProps
           <p className={cn('flex flex-wrap items-center gap-3 font-heading text-xl font-extrabold tracking-tight', style.title)}>
             {title}
             {result.xp > 0 && (
-              <span className="animate-[pop-in_380ms_ease-out] rounded-full bg-xp/20 px-3 py-0.5 text-base font-extrabold text-[#8a6500]">
+              <span className="animate-[pop-in_380ms_ease-out] rounded-full bg-xp/20 px-3 py-0.5 text-base font-extrabold text-gold-ink">
                 +{result.xp} XP
               </span>
             )}
@@ -65,7 +65,7 @@ export function FeedbackPanel({ result, isLast, onContinue }: FeedbackPanelProps
           {mistakes.length > 0 && (
             <p className="flex flex-wrap gap-2 pt-1">
               {mistakes.map((code) => (
-                <span key={code} className="rounded-full bg-white/70 px-3 py-0.5 text-sm font-semibold text-mute">
+                <span key={code} className="rounded-full bg-card/70 px-3 py-0.5 text-sm font-semibold text-mute">
                   {ERROR_TYPES[code as ErrorTypeCode]?.labelEn ?? code}
                 </span>
               ))}

@@ -69,7 +69,7 @@ export function Flashcard({ content, locked, sendNow }: RendererProps<ContentOf[
                 {back.meaningFa && <p className="fa text-3xl font-bold">{back.meaningFa}</p>}
                 {back.meaningEn && <p className="text-xl text-mute">{back.meaningEn}</p>}
                 {back.details.map((d) => (
-                  <p key={d} className="rounded-xl bg-white/70 px-4 py-2 text-lg">
+                  <p key={d} className="rounded-xl bg-card/70 px-4 py-2 text-lg">
                     {d}
                   </p>
                 ))}

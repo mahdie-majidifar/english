@@ -133,7 +133,7 @@ export function GettingStarted() {
                 <h3 className="font-heading text-xl font-bold tracking-tight">{step.title}</h3>
                 <p className="mt-2 text-base leading-relaxed text-mute">{step.body}</p>
                 {isDone ? (
-                  <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-good-soft px-3 py-1 text-sm font-semibold text-good-edge">
+                  <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-good-soft px-3 py-1 text-sm font-semibold text-good-ink">
                     <Check className="size-4" strokeWidth={3} /> Done
                   </p>
                 ) : href ? (

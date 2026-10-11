@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Plus_Jakarta_Sans, Vazirmatn } from 'next/font/google';
-import { connection } from 'next/server';
+import { cookies } from 'next/headers';
+import { THEME_COOKIE, parseTheme } from '@/lib/theme';
 import type { ReactNode } from 'react';
 import { Providers } from './providers';
 import './globals.css';
@@ -23,15 +24,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#FAF8F5',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#FAF8F5' },
+    { media: '(prefers-color-scheme: dark)', color: '#12121C' },
+  ],
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  // Every page is rendered per request: the Content-Security-Policy carries a fresh nonce (see proxy.ts)
-  // that Next can only put on the scripts while rendering, never in a page built ahead of time.
-  await connection();
+  // Every page is rendered per request (reading the cookie makes it so): the Content-Security-Policy carries a
+  // fresh nonce (see proxy.ts) that Next can only put on the scripts while rendering, never in a page built ahead
+  // of time. The same cookie holds the light/dark choice, so the page is drawn in the right theme from the first byte.
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
   return (
-    <html lang="en" className={`${jakarta.variable} ${inter.variable} ${vazirmatn.variable}`}>
+    <html lang="en" data-theme={theme === 'system' ? undefined : theme} className={`${jakarta.variable} ${inter.variable} ${vazirmatn.variable}`}>
       <body className="min-h-dvh bg-paper text-ink">
         <Providers>{children}</Providers>
       </body>

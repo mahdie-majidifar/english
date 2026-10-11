@@ -166,12 +166,12 @@ function MoreExercises({ itemId }: { itemId: string }) {
         </div>
       </div>
       {generate.isSuccess && (
-        <p role="status" className="rounded-control bg-good-soft px-4 py-3 text-base font-medium text-good-edge">
+        <p role="status" className="rounded-control bg-good-soft px-4 py-3 text-base font-medium text-good-ink">
           {generate.data.created} new exercise{generate.data.created === 1 ? '' : 's'} added to your practice.
         </p>
       )}
       {generate.isError && (
-        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
           {errorMessage(generate.error)}
         </p>
       )}
@@ -193,7 +193,7 @@ export function ItemDetailPage() {
   if (query.isError) {
     return (
       <Card role="alert" className="border-bad/40 bg-bad-soft">
-        <p className="text-lg font-semibold text-bad-edge">{errorMessage(query.error, 'We could not load this item.')}</p>
+        <p className="text-lg font-semibold text-bad-ink">{errorMessage(query.error, 'We could not load this item.')}</p>
         <Link href="/library" className="mt-3 inline-block font-semibold underline">
           Back to the library
         </Link>

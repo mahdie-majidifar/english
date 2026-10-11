@@ -28,7 +28,7 @@ function Wrapper({
       </label>
       {children}
       {(error || hint) && (
-        <p id={messageId} className={cn('text-sm', error ? 'text-bad-edge' : 'text-mute')}>
+        <p id={messageId} className={cn('text-sm', error ? 'text-bad-ink' : 'text-mute')}>
           {error ?? hint}
         </p>
       )}

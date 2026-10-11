@@ -145,7 +145,7 @@ export function MaterialInput({ value, onChange, error }: MaterialInputProps) {
               <span className="text-base text-mute">PDF, Word, a photo or screenshot, or a text file. Up to {mb(MAX_UPLOAD_BYTES)}.</span>
             </button>
           )}
-          {(fileError || error) && <p role="alert" className="mt-3 text-base font-medium text-bad-edge">{fileError ?? error}</p>}
+          {(fileError || error) && <p role="alert" className="mt-3 text-base font-medium text-bad-ink">{fileError ?? error}</p>}
         </div>
       )}
 

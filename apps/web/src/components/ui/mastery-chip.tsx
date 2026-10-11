@@ -5,7 +5,7 @@ const STYLES: Record<LearningStatus, { label: string; className: string }> = {
   NEW: { label: 'New', className: 'bg-subtle text-mute' },
   LEARNING: { label: 'Learning', className: 'bg-grammar/12 text-grammar' },
   REVIEW: { label: 'Review', className: 'bg-brand-soft text-brand' },
-  MASTERED: { label: 'Mastered', className: 'bg-good-soft text-good-edge' },
+  MASTERED: { label: 'Mastered', className: 'bg-good-soft text-good-ink' },
 };
 
 /** Calm, scannable mastery status. "Weak" is a flag layered on top once the SRS engine exists. */

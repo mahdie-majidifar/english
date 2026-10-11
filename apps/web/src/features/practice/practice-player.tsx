@@ -116,7 +116,7 @@ function Countdown({ seconds, onTimeUp }: { seconds: number; onTimeUp: () => voi
       aria-label={`${clock(left)} left`}
       className={cn(
         'flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-heading text-base font-extrabold tabular-nums',
-        left <= 20 ? 'animate-pulse bg-bad-soft text-bad-edge' : left <= 60 ? 'bg-flame/15 text-[#b36b00]' : 'bg-subtle text-ink',
+        left <= 20 ? 'animate-pulse bg-bad-soft text-bad-ink' : left <= 60 ? 'bg-flame/15 text-amber-ink' : 'bg-subtle text-ink',
       )}
     >
       <Clock className="size-4" /> {clock(left)}
@@ -315,7 +315,7 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone, assessment 
       <main className="flex-1">
         <div className="mx-auto max-w-2xl space-y-6 px-5 pb-10 pt-8">
           {block && newBlock && (
-            <div key={block} className="flex animate-[slide-up_260ms_ease-out] items-center gap-3 rounded-2xl bg-ink px-5 py-3 text-white">
+            <div key={block} className="flex animate-[slide-up_260ms_ease-out] items-center gap-3 rounded-2xl bg-deep px-5 py-3 text-white">
               <span className="font-heading text-lg font-extrabold">{BLOCK_LABELS[block]}</span>
               <span className="text-base text-white/70">
                 {blockCount} exercise{blockCount === 1 ? '' : 's'}
@@ -356,7 +356,7 @@ export function PracticePlayer({ run, onAgain, backHref, renderDone, assessment 
         ) : (
           <div className="mx-auto max-w-2xl space-y-3 px-5 py-4">
             {state.error && (
-              <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+              <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
                 {state.error}
               </p>
             )}

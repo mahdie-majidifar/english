@@ -45,7 +45,7 @@ export function Matching({ content, value, onChange, locked, result }: RendererP
       'flex min-h-14 w-full items-center rounded-2xl border-2 px-4 py-3 text-left text-lg font-semibold transition-[transform,border-color,background-color,opacity] duration-150',
       state === 'idle' && 'border-line bg-card hover:-translate-y-0.5 hover:border-brand/40',
       state === 'selected' && 'border-brand bg-brand-soft shadow-[0_0_0_4px_var(--brand-soft)]',
-      state === 'paired' && 'bg-[color-mix(in_srgb,var(--pair)_12%,white)] border-[var(--pair)]',
+      state === 'paired' && 'bg-[color-mix(in_srgb,var(--pair)_12%,var(--card))] border-[var(--pair)]',
       state === 'correct' && 'border-good bg-good-soft',
       state === 'wrong' && 'animate-wrong border-bad bg-bad-soft',
       color && '[--pair:var(--c)]',

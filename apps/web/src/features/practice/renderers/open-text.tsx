@@ -45,7 +45,7 @@ export function OpenText({ content, value, onChange, locked, result, onEnter }: 
                 key={w}
                 className={cn(
                   'inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-base font-semibold transition-colors',
-                  used ? 'border-good bg-good-soft text-good-edge' : 'border-line bg-card text-ink',
+                  used ? 'border-good bg-good-soft text-good-ink' : 'border-line bg-card text-ink',
                 )}
               >
                 {used && <Check className="size-4" strokeWidth={3} />}

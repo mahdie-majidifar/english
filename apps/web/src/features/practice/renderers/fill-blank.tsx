@@ -9,10 +9,10 @@ type Value = { answer: string };
 
 const verdictClass = (result: RendererProps['result']) =>
   result?.verdict === 'correct'
-    ? 'border-good text-good-edge'
+    ? 'border-good text-good-ink'
     : result?.verdict === 'almost'
-      ? 'border-flame text-[#b36b00]'
-      : 'border-bad text-bad-edge';
+      ? 'border-flame text-amber-ink'
+      : 'border-bad text-bad-ink';
 
 /** A sentence with the gap replaced by a box to type into, right where the word belongs. */
 export function FillBlank({ content, value, onChange, locked, result, onEnter }: RendererProps<ContentOf['fill_blank'], Value>) {

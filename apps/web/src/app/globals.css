@@ -3,9 +3,11 @@
 
 /*
  * Design tokens — from docs/design/style-tile.html ("Playful-Mature Minimal").
- * Every colour is a CSS variable, so dark mode later is a matter of overriding this block.
+ * Every colour is a CSS variable. Dark mode overrides the block below (twice: once for people who chose
+ * "Dark", once for devices set to dark that did not choose). Keep the two dark blocks identical.
  */
 :root {
+  color-scheme: light;
   --paper: #faf8f5;
   --card: #ffffff;
   --subtle: #f3f0ea;
@@ -21,6 +23,15 @@
   --good: #22c55e;
   --good-soft: #e8f9ee;
   --good-edge: #16a34a;
+  /* Text on the soft tints: the same hue, readable on that tint in either theme. */
+  --good-ink: #16a34a;
+  --bad-ink: #e0503c;
+  --amber-ink: #b36b00;
+  --gold-ink: #8a6500;
+  /* A dark panel with white text (the boss quiz card, the block banner). */
+  --deep: #1b1b2f;
+  --elev-soft: 0 8px 24px rgba(27, 27, 47, 0.06);
+  --elev-lift: 0 16px 34px rgba(108, 77, 255, 0.12);
   --bad: #ff6b57;
   --bad-soft: #ffeeeb;
   --bad-edge: #e0503c;
@@ -51,6 +62,84 @@
   --radius: 1rem;
 }
 
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #12121c;
+  --card: #1b1b2b;
+  --subtle: #25253a;
+  --line: #31314a;
+  --ink: #f1f0fa;
+  --mute: #a5a5bd;
+
+  --brand: #7c63ff;
+  --brand-hover: #8d77ff;
+  --brand-soft: #27214d;
+  --brand-edge: #4d33cc;
+
+  --good: #22c55e;
+  --good-soft: #14301f;
+  --good-edge: #16a34a;
+  --good-ink: #5fe39a;
+  --bad: #ff6b57;
+  --bad-soft: #3a1d1a;
+  --bad-edge: #e0503c;
+  --bad-ink: #ff9a8a;
+  --amber-ink: #ffb84d;
+  --gold-ink: #f5c542;
+  --deep: #2b2650;
+
+  --vocab: #957bff;
+  --grammar: #5a9bff;
+  --colloc: #2cc9ba;
+  --formation: #f7b24a;
+  --expr: #f77aa6;
+  --verbs: #a3d466;
+  --mistake: #ff8672;
+
+  --elev-soft: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --elev-lift: 0 16px 34px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #12121c;
+    --card: #1b1b2b;
+    --subtle: #25253a;
+    --line: #31314a;
+    --ink: #f1f0fa;
+    --mute: #a5a5bd;
+
+    --brand: #7c63ff;
+    --brand-hover: #8d77ff;
+    --brand-soft: #27214d;
+    --brand-edge: #4d33cc;
+
+    --good: #22c55e;
+    --good-soft: #14301f;
+    --good-edge: #16a34a;
+    --good-ink: #5fe39a;
+    --bad: #ff6b57;
+    --bad-soft: #3a1d1a;
+    --bad-edge: #e0503c;
+    --bad-ink: #ff9a8a;
+    --amber-ink: #ffb84d;
+    --gold-ink: #f5c542;
+  --deep: #2b2650;
+
+    --vocab: #957bff;
+    --grammar: #5a9bff;
+    --colloc: #2cc9ba;
+    --formation: #f7b24a;
+    --expr: #f77aa6;
+    --verbs: #a3d466;
+    --mistake: #ff8672;
+
+    --elev-soft: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --elev-lift: 0 16px 34px rgba(0, 0, 0, 0.45);
+  }
+}
+
 @theme inline {
   --color-paper: var(--paper);
   --color-card: var(--card);
@@ -67,6 +156,11 @@
   --color-good: var(--good);
   --color-good-soft: var(--good-soft);
   --color-good-edge: var(--good-edge);
+  --color-good-ink: var(--good-ink);
+  --color-bad-ink: var(--bad-ink);
+  --color-amber-ink: var(--amber-ink);
+  --color-gold-ink: var(--gold-ink);
+  --color-deep: var(--deep);
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
   --color-bad-edge: var(--bad-edge);
@@ -99,8 +193,8 @@
   --radius-card: 1.5rem;
   --radius-control: 1rem;
 
-  --shadow-soft: 0 8px 24px rgba(27, 27, 47, 0.06);
-  --shadow-lift: 0 16px 34px rgba(108, 77, 255, 0.12);
+  --shadow-soft: var(--elev-soft);
+  --shadow-lift: var(--elev-lift);
 
   --animate-correct: correct-pulse 720ms ease-out;
   --animate-wrong: wrong-shake 460ms ease-in-out 2;

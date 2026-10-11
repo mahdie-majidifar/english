@@ -33,7 +33,7 @@ export function Dialog({ open, onClose, title, description, children, className 
       }}
       className={cn(
         'm-auto w-[min(34rem,calc(100%-2rem))] rounded-card border border-line bg-card p-0 text-ink shadow-lift',
-        'backdrop:bg-ink/40 backdrop:backdrop-blur-[2px]',
+        'backdrop:bg-black/50 backdrop:backdrop-blur-[2px]',
         className,
       )}
     >

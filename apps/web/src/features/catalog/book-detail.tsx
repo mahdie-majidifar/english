@@ -55,14 +55,14 @@ function ImportDialog({ bookId, open, onClose }: { bookId: string; open: boolean
     >
       {result ? (
         <div className="space-y-5">
-          <p className="rounded-control bg-good-soft px-4 py-3 text-base font-medium text-good-edge">
+          <p className="rounded-control bg-good-soft px-4 py-3 text-base font-medium text-good-ink">
             Added {result.lessonsCreated} lesson{result.lessonsCreated === 1 ? '' : 's'} and {result.unitsCreated} unit
             {result.unitsCreated === 1 ? '' : 's'}.
             {result.lessonsRenamed > 0 && ` Named ${result.lessonsRenamed} lesson${result.lessonsRenamed === 1 ? '' : 's'}.`}
             {result.lessonsSkipped > 0 && ` ${result.lessonsSkipped} already existed.`}
           </p>
           {result.rejected.length > 0 && (
-            <div className="rounded-control bg-bad-soft px-4 py-3 text-base text-bad-edge">
+            <div className="rounded-control bg-bad-soft px-4 py-3 text-base text-bad-ink">
               <p className="mb-1 font-semibold">These lines were not understood:</p>
               <ul className="list-disc pl-5">
                 {result.rejected.map((line) => (
@@ -87,7 +87,7 @@ function ImportDialog({ bookId, open, onClose }: { bookId: string; open: boolean
             autoFocus
           />
           {importer.isError && (
-            <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+            <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
               {errorMessage(importer.error)}
             </p>
           )}
@@ -117,7 +117,7 @@ function AddUnitDialog({ bookId, open, onClose }: { bookId: string; open: boolea
         <Field label="Unit number" name="number" type="number" min={0} max={99} required autoFocus />
         <Field label="Title (optional)" name="title" placeholder="Money" />
         {create.isError && (
-          <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+          <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
             {errorMessage(create.error)}
           </p>
         )}
@@ -148,7 +148,7 @@ function AddLessonForm({ unitId, onDone }: { unitId: string; onDone: () => void 
         <Field label="Lesson title" name="title" placeholder="Business" required />
       </div>
       {create.isError && (
-        <p role="alert" className="text-base font-medium text-bad-edge">
+        <p role="alert" className="text-base font-medium text-bad-ink">
           {errorMessage(create.error)}
         </p>
       )}
@@ -196,7 +196,7 @@ function LessonRow({ lesson, unitTitle }: { lesson: LessonDto; unitTitle: string
           type="button"
           onClick={() => setConfirming(true)}
           aria-label={`Delete lesson ${lesson.code}`}
-          className="grid size-9 place-items-center rounded-control text-mute transition-colors hover:bg-bad-soft hover:text-bad-edge"
+          className="grid size-9 place-items-center rounded-control text-mute transition-colors hover:bg-bad-soft hover:text-bad-ink"
         >
           <Trash2 className="size-4" />
         </button>
@@ -283,7 +283,7 @@ function UnitCard({ unit, defaultOpen }: { unit: UnitDto; defaultOpen: boolean }
             type="button"
             onClick={() => setConfirming(true)}
             aria-label={`Delete unit ${unit.number}`}
-            className="grid size-9 place-items-center rounded-control text-mute transition-colors hover:bg-bad-soft hover:text-bad-edge"
+            className="grid size-9 place-items-center rounded-control text-mute transition-colors hover:bg-bad-soft hover:text-bad-ink"
           >
             <Trash2 className="size-4" />
           </button>
@@ -390,7 +390,7 @@ export function BookDetailPage() {
   if (book.isError) {
     return (
       <Card role="alert" className="border-bad/40 bg-bad-soft">
-        <p className="text-lg font-semibold text-bad-edge">{errorMessage(book.error, 'We could not load this book.')}</p>
+        <p className="text-lg font-semibold text-bad-ink">{errorMessage(book.error, 'We could not load this book.')}</p>
         <Link href="/books" className="mt-3 inline-block font-semibold underline">
           Back to your books
         </Link>

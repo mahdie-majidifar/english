@@ -69,7 +69,7 @@ export function FillWithAiDialog({ open, onClose, lessonId, lessonName, needsTop
         </SelectField>
         <p className="fa text-sm text-mute">هوش مصنوعی پیشنهاد می‌دهد؛ چیزی خودکار ذخیره نمی‌شود. خودت بررسی و انتخاب می‌کنی.</p>
         {suggest.isError && (
-          <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+          <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
             {errorMessage(suggest.error)}
           </p>
         )}

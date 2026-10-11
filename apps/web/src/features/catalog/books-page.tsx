@@ -39,7 +39,7 @@ function BookCard({ book, index }: { book: BookSummary; index: number }) {
               <span className="rounded-full bg-brand-soft px-3 py-1 text-sm font-semibold text-brand">{book.cefr}</span>
             )}
             {book.isCurrent && (
-              <span className="inline-flex items-center gap-2 rounded-full bg-good-soft px-3 py-1 text-sm font-semibold text-good-edge">
+              <span className="inline-flex items-center gap-2 rounded-full bg-good-soft px-3 py-1 text-sm font-semibold text-good-ink">
                 <i aria-hidden className="size-2 animate-pulse rounded-full bg-good" />
                 Studying now
               </span>
@@ -117,7 +117,7 @@ function AddBookDialog({ open, onClose }: { open: boolean; onClose: () => void }
           error={errors.title}
         />
         {create.isError && (
-          <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+          <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
             {errorMessage(create.error)}
           </p>
         )}
@@ -150,7 +150,7 @@ function TemplateCard({ template }: { template: BookTemplateDto }) {
         {template.note && <p className="mt-2 text-sm text-mute">{template.note}</p>}
       </div>
       {add.isError && (
-        <p role="alert" className="text-sm font-medium text-bad-edge">
+        <p role="alert" className="text-sm font-medium text-bad-ink">
           {errorMessage(add.error)}
         </p>
       )}
@@ -217,7 +217,7 @@ export function BooksPage() {
 
       {books.isError && (
         <Card role="alert" className="border-bad/40 bg-bad-soft">
-          <p className="text-lg font-semibold text-bad-edge">We could not load your books.</p>
+          <p className="text-lg font-semibold text-bad-ink">We could not load your books.</p>
           <Button variant="secondary" className="mt-4" onClick={() => books.refetch()}>
             Try again
           </Button>

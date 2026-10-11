@@ -99,7 +99,7 @@ function Challenge({ challenge, fresh }: { challenge: ChallengeDto; fresh: boole
           <p className="font-heading text-lg font-extrabold leading-tight tracking-tight">{challenge.title}</p>
           <p className="text-sm text-mute">{challenge.description}</p>
         </div>
-        <span className="shrink-0 rounded-full bg-xp/20 px-2.5 py-1 text-sm font-extrabold text-[#8a6500]">+{challenge.rewardXp} XP</span>
+        <span className="shrink-0 rounded-full bg-xp/20 px-2.5 py-1 text-sm font-extrabold text-gold-ink">+{challenge.rewardXp} XP</span>
       </div>
       <div>
         <div className="h-2.5 overflow-hidden rounded-full bg-subtle" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={challenge.title}>
@@ -143,7 +143,7 @@ function StatCards({ data }: { data: DashboardDto }) {
       </Card>
       <Card className="space-y-3 p-5">
         <div className="flex items-center gap-4">
-          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-xp/20 text-[#b88700]">
+          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-xp/20 text-gold-ink">
             <Star className="size-7" fill="currentColor" />
           </span>
           <div>
@@ -189,7 +189,7 @@ function PracticeShortcuts({ data }: { data: DashboardDto }) {
       </Card>
       <Card className="flex flex-col justify-between gap-4 p-5">
         <div className="flex items-center gap-4">
-          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-bad-soft text-bad-edge">
+          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-bad-soft text-bad-ink">
             <Flag className="size-6" />
           </span>
           <div>
@@ -235,7 +235,7 @@ function WeakAreas({ data }: { data: DashboardDto }) {
                   <p className="text-lg font-bold">{area.label}</p>
                   {area.labelFa && <p className="fa text-base text-mute">{area.labelFa}</p>}
                 </div>
-                <span className="rounded-full bg-bad-soft px-3 py-0.5 text-sm font-bold text-bad-edge">{area.count}</span>
+                <span className="rounded-full bg-bad-soft px-3 py-0.5 text-sm font-bold text-bad-ink">{area.count}</span>
               </div>
               {area.items.length > 0 && (
                 <p className="flex flex-wrap gap-2">
@@ -264,7 +264,7 @@ export function Dashboard() {
   if (dashboard.isPending) return <div className="h-96 animate-pulse rounded-card bg-subtle" aria-busy />;
   if (dashboard.isError) {
     return (
-      <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-edge">
+      <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-ink">
         {errorMessage(dashboard.error, 'We could not load your dashboard.')}
       </Card>
     );

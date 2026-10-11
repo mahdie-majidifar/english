@@ -22,7 +22,7 @@ export function BossButton({ unitId }: { unitId: string }) {
         <Swords className="size-4" /> Boss quiz
       </Button>
       {create.isError && (
-        <span role="alert" className="max-w-56 text-sm font-medium text-bad-edge">
+        <span role="alert" className="max-w-56 text-sm font-medium text-bad-ink">
           {errorMessage(create.error)}
         </span>
       )}

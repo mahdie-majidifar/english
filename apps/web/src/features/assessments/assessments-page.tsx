@@ -53,13 +53,13 @@ function HistoryRow({ a }: { a: AssessmentSummaryDto }) {
           <span
             className={cn(
               'rounded-full px-3 py-1 font-heading text-base font-extrabold',
-              pct >= 80 ? 'bg-good-soft text-good-edge' : pct >= 50 ? 'bg-brand-soft text-brand' : 'bg-bad-soft text-bad-edge',
+              pct >= 80 ? 'bg-good-soft text-good-ink' : pct >= 50 ? 'bg-brand-soft text-brand' : 'bg-bad-soft text-bad-ink',
             )}
           >
             {pct}%
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-flame/15 px-3 py-1 text-sm font-bold text-[#b36b00]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-flame/15 px-3 py-1 text-sm font-bold text-amber-ink">
             <Clock className="size-4" /> {a.status === 'READY' ? 'Not started' : 'Continue'}
           </span>
         )}
@@ -92,7 +92,7 @@ export function AssessmentsPage() {
       </header>
 
       {create.isError && (
-        <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-edge">
+        <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-ink">
           {errorMessage(create.error, 'We could not build that.')}
         </Card>
       )}
@@ -165,7 +165,7 @@ export function AssessmentsPage() {
         {list.isPending ? (
           <div className="h-32 animate-pulse rounded-card bg-subtle" aria-busy />
         ) : list.isError ? (
-          <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-edge">
+          <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-ink">
             {errorMessage(list.error)}
           </Card>
         ) : list.data.assessments.length === 0 ? (

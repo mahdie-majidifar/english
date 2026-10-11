@@ -25,7 +25,7 @@ export function ItemEditPage() {
       {query.isPending && <div className="h-96 animate-pulse rounded-card bg-subtle" aria-busy />}
       {query.isError && (
         <Card role="alert" className="border-bad/40 bg-bad-soft">
-          <p className="text-lg font-semibold text-bad-edge">{errorMessage(query.error, 'We could not load this item.')}</p>
+          <p className="text-lg font-semibold text-bad-ink">{errorMessage(query.error, 'We could not load this item.')}</p>
         </Card>
       )}
       {query.data && <ItemForm item={query.data} />}

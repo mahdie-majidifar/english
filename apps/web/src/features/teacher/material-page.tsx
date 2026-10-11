@@ -53,11 +53,11 @@ function Failed({ material }: { material: MaterialDto }) {
   return (
     <Card role="alert" className="space-y-5 border-bad/40 bg-bad-soft">
       <div>
-        <h2 className="font-heading text-2xl font-extrabold tracking-tight text-bad-edge">We could not analyse this</h2>
+        <h2 className="font-heading text-2xl font-extrabold tracking-tight text-bad-ink">We could not analyse this</h2>
         <p className="mt-2 text-lg text-ink">{material.errorMessage ?? 'Something went wrong.'}</p>
         <p className="mt-2 text-base text-mute">Your original is safe. Nothing was lost.</p>
       </div>
-      {reparse.isError && <p className="text-base font-medium text-bad-edge">{errorMessage(reparse.error)}</p>}
+      {reparse.isError && <p className="text-base font-medium text-bad-ink">{errorMessage(reparse.error)}</p>}
       <div className="flex flex-wrap gap-3">
         <Button loading={reparse.isPending} onClick={() => reparse.mutate()}>
           Try again
@@ -109,7 +109,7 @@ export function MaterialPage() {
   if (query.isError) {
     return (
       <Card role="alert" className="border-bad/40 bg-bad-soft">
-        <p className="text-lg font-semibold text-bad-edge">{errorMessage(query.error, 'We could not load this material.')}</p>
+        <p className="text-lg font-semibold text-bad-ink">{errorMessage(query.error, 'We could not load this material.')}</p>
         <Link href="/teacher" className="mt-3 inline-block font-semibold underline">
           Back to teacher notes
         </Link>

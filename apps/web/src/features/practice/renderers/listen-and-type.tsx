@@ -32,7 +32,7 @@ export function ListenAndType({ content, value, onChange, locked, result, onEnte
         {canSpeak ? (
           <SpeakButton text={content.audioText} label="Play the audio" withSlow size="lg" />
         ) : (
-          <p role="status" className="text-base font-semibold text-bad-edge">
+          <p role="status" className="text-base font-semibold text-bad-ink">
             This browser cannot read English aloud, so this question cannot be played. Press Skip.
           </p>
         )}
@@ -63,9 +63,9 @@ export function ListenAndType({ content, value, onChange, locked, result, onEnte
           className={cn(
             'w-full rounded-2xl border-2 bg-card px-5 py-4 font-heading text-2xl font-bold outline-none transition-colors',
             !locked && 'border-line text-ink focus:border-brand',
-            locked && verdict === 'correct' && 'border-good text-good-edge',
-            locked && verdict === 'almost' && 'border-flame text-[#b36b00]',
-            locked && verdict === 'wrong' && 'animate-wrong border-bad text-bad-edge',
+            locked && verdict === 'correct' && 'border-good text-good-ink',
+            locked && verdict === 'almost' && 'border-flame text-amber-ink',
+            locked && verdict === 'wrong' && 'animate-wrong border-bad text-bad-ink',
           )}
         />
       </label>

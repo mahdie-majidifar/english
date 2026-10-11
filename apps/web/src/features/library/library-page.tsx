@@ -99,7 +99,7 @@ export function LibraryPage() {
             onClick={() => set({ type: undefined })}
             className={cn(
               'shrink-0 rounded-full border px-4 py-2 text-base font-semibold transition-colors',
-              !filters.type ? 'border-ink bg-ink text-white' : 'border-line bg-card text-ink hover:bg-subtle',
+              !filters.type ? 'border-deep bg-deep text-white' : 'border-line bg-card text-ink hover:bg-subtle',
             )}
           >
             All <span className="ml-1 opacity-70">{total}</span>
@@ -117,7 +117,7 @@ export function LibraryPage() {
                 className={cn(
                   'inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-base font-semibold transition-colors',
                   selected
-                    ? 'border-[var(--mode)] bg-[color-mix(in_srgb,var(--mode)_14%,white)] text-[var(--mode)]'
+                    ? 'border-[var(--mode)] bg-[color-mix(in_srgb,var(--mode)_14%,var(--card))] text-[var(--mode)]'
                     : 'border-line bg-card text-ink hover:bg-subtle',
                 )}
               >
@@ -172,7 +172,7 @@ export function LibraryPage() {
 
       {items.isError && (
         <Card role="alert" className="border-bad/40 bg-bad-soft">
-          <p className="text-lg font-semibold text-bad-edge">We could not load your library.</p>
+          <p className="text-lg font-semibold text-bad-ink">We could not load your library.</p>
           <Button variant="secondary" className="mt-4" onClick={() => items.refetch()}>
             Try again
           </Button>

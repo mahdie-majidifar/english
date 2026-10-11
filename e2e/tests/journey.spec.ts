@@ -167,6 +167,29 @@ test('the library shows real statuses, and the profile keeps the difficulty', as
   await expect(page.getByRole('radio', { name: /Easy/ })).toHaveAttribute('aria-checked', 'true');
 });
 
+test('dark mode: chosen once, kept after a reload, and drawn dark from the first byte', async ({ page }) => {
+  await signIn(page);
+  await page.goto('/profile');
+  const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/);
+
+  await page.getByRole('radio', { name: /^Dark/ }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  expect(await background()).toBe('rgb(18, 18, 28)');
+
+  // The server reads the cookie, so the page arrives already dark (no flash of the light page).
+  const html = await (await page.request.get('/profile')).text();
+  expect(html).toMatch(/<html[^>]*data-theme="dark"/);
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+
+  // The quick toggle in the sidebar flips it back.
+  await page.setViewportSize({ width: 1280, height: 860 });
+  await page.getByRole("button", { name: "Switch to light mode" }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  expect(await background()).toBe('rgb(250, 248, 245)');
+});
+
 test('signs out and is sent to the sign-in page', async ({ page }) => {
   await signIn(page);
   await page.getByRole('button', { name: 'Sign out' }).click();

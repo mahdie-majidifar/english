@@ -44,13 +44,13 @@ function ReviewRow({ q }: { q: ReviewQuestionDto }) {
       {q.answered && q.yourAnswer && (
         <p className="rounded-2xl bg-subtle px-4 py-3 text-lg">
           <span className="font-medium text-mute">Your answer: </span>
-          <bdi className={cn('font-semibold', q.verdict === 'correct' ? 'text-good-edge' : 'text-bad-edge')}>{q.yourAnswer}</bdi>
+          <bdi className={cn('font-semibold', q.verdict === 'correct' ? 'text-good-ink' : 'text-bad-ink')}>{q.yourAnswer}</bdi>
         </p>
       )}
       {q.correctAnswerText && (
         <p className="rounded-2xl bg-good-soft px-4 py-3 text-lg">
           <span className="font-medium text-mute">Correct answer: </span>
-          <bdi className="whitespace-pre-line font-semibold text-good-edge">{q.correctAnswerText}</bdi>
+          <bdi className="whitespace-pre-line font-semibold text-good-ink">{q.correctAnswerText}</bdi>
         </p>
       )}
       {q.explanationFa && <p className="fa text-lg">{q.explanationFa}</p>}
@@ -87,7 +87,7 @@ function Result({ result }: { result: AssessmentResultDto }) {
             {result.unanswered > 0 ? ` · ${result.unanswered} not answered` : ''}
           </p>
           <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
-            <span className="inline-flex items-center gap-2 rounded-full bg-xp/20 px-4 py-1.5 text-base font-bold text-[#8a6500]">
+            <span className="inline-flex items-center gap-2 rounded-full bg-xp/20 px-4 py-1.5 text-base font-bold text-gold-ink">
               <Star className="size-4" fill="currentColor" /> +<CountUp value={result.xpEarned} /> XP
             </span>
             <span className="inline-flex items-center gap-2 rounded-full bg-subtle px-4 py-1.5 text-base font-semibold text-mute">
@@ -158,7 +158,7 @@ function Result({ result }: { result: AssessmentResultDto }) {
           {result.newMistakes > 0 && (
             <Card className="flex flex-col justify-between gap-4 p-5">
               <div className="flex items-center gap-4">
-                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-bad-soft text-bad-edge">
+                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-bad-soft text-bad-ink">
                   <Flag className="size-6" />
                 </span>
                 <div>
@@ -249,7 +249,7 @@ export function ResultPage() {
   }
   if (query.isError) {
     return (
-      <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-edge">
+      <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-ink">
         {errorMessage(query.error, 'We could not load this result.')}
       </Card>
     );

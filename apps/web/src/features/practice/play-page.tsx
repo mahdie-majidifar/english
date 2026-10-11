@@ -101,7 +101,7 @@ export function PlayPage() {
     return (
       <Centered>
         <Card role="alert" className="space-y-4 border-bad/40 bg-bad-soft text-center">
-          <p className="text-lg font-semibold text-bad-edge">{errorMessage(build.error, 'We could not build your practice.')}</p>
+          <p className="text-lg font-semibold text-bad-ink">{errorMessage(build.error, 'We could not build your practice.')}</p>
           <div className="flex justify-center gap-3">
             <Button onClick={() => setRound((r) => r + 1)}>Try again</Button>
             <Link href={backHref} className={buttonClass('secondary', 'md')}>

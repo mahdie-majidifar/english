@@ -11,8 +11,8 @@ import { errorMessage } from '@/lib/errors';
 import { useMistakes, useMistakeSummary, type MistakeFilter } from './hooks';
 
 const PRIORITY = {
-  HIGH: 'bg-bad-soft text-bad-edge',
-  MEDIUM: 'bg-flame/15 text-[#b36b00]',
+  HIGH: 'bg-bad-soft text-bad-ink',
+  MEDIUM: 'bg-flame/15 text-amber-ink',
   LOW: 'bg-subtle text-mute',
 } as const;
 
@@ -21,7 +21,7 @@ const STATUS_LABEL = { ACTIVE: 'Needs work', IMPROVING: 'Improving', RESOLVED: '
 const STATUS_TONE = {
   ACTIVE: 'bg-subtle text-mute',
   IMPROVING: 'bg-brand-soft text-brand',
-  RESOLVED: 'bg-good-soft text-good-edge',
+  RESOLVED: 'bg-good-soft text-good-ink',
 } as const;
 
 function MistakeCard({ mistake }: { mistake: MistakeDto }) {
@@ -40,7 +40,7 @@ function MistakeCard({ mistake }: { mistake: MistakeDto }) {
         </div>
         <div className="flex flex-wrap gap-2">
           {mistake.repeated && (
-            <span className="rounded-full bg-bad-soft px-3 py-1 text-sm font-semibold text-bad-edge">Keeps happening</span>
+            <span className="rounded-full bg-bad-soft px-3 py-1 text-sm font-semibold text-bad-ink">Keeps happening</span>
           )}
           {mistake.status !== 'RESOLVED' && (
             <span className={cn('rounded-full px-3 py-1 text-sm font-semibold', PRIORITY[mistake.priority])}>
@@ -57,12 +57,12 @@ function MistakeCard({ mistake }: { mistake: MistakeDto }) {
         <p className="rounded-2xl bg-subtle px-4 py-3 text-lg">
           {last.expectedAnswer ? (
             <>
-              <bdi className="text-bad-edge line-through">{last.userAnswer || '(empty)'}</bdi>
+              <bdi className="text-bad-ink line-through">{last.userAnswer || '(empty)'}</bdi>
               <span className="mx-2 text-mute">→</span>
-              <bdi className="font-semibold text-good-edge">{last.expectedAnswer}</bdi>
+              <bdi className="font-semibold text-good-ink">{last.expectedAnswer}</bdi>
             </>
           ) : (
-            <span className="font-semibold text-bad-edge">{last.userAnswer || '(empty)'}</span>
+            <span className="font-semibold text-bad-ink">{last.userAnswer || '(empty)'}</span>
           )}
         </p>
       )}
@@ -84,10 +84,10 @@ export function MistakesPage() {
   const open = (summary.data?.active ?? 0) + (summary.data?.improving ?? 0);
 
   const tiles: [string, number | undefined, string][] = [
-    ['Needs work', summary.data?.active, 'bg-bad-soft text-bad-edge'],
+    ['Needs work', summary.data?.active, 'bg-bad-soft text-bad-ink'],
     ['Improving', summary.data?.improving, 'bg-brand-soft text-brand'],
-    ['Keep repeating', summary.data?.repeated, 'bg-flame/15 text-[#b36b00]'],
-    ['Resolved', summary.data?.resolved, 'bg-good-soft text-good-edge'],
+    ['Keep repeating', summary.data?.repeated, 'bg-flame/15 text-amber-ink'],
+    ['Resolved', summary.data?.resolved, 'bg-good-soft text-good-ink'],
   ];
 
   return (
@@ -133,7 +133,7 @@ export function MistakesPage() {
       {list.isPending ? (
         <div className="h-48 animate-pulse rounded-card bg-subtle" aria-busy />
       ) : list.isError ? (
-        <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-edge">
+        <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-ink">
           {errorMessage(list.error)}
         </Card>
       ) : list.data.length === 0 ? (

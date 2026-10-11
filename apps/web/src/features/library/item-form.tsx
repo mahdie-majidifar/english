@@ -48,8 +48,8 @@ function TypePicker({ value, onChange }: { value: ItemType; onChange: (t: ItemTy
               className={cn(
                 'relative rounded-2xl border-2 p-4 text-left transition-[transform,border-color,background-color]',
                 selected
-                  ? 'border-[var(--mode)] bg-[color-mix(in_srgb,var(--mode)_10%,white)]'
-                  : 'border-line bg-card hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--mode)_45%,white)]',
+                  ? 'border-[var(--mode)] bg-[color-mix(in_srgb,var(--mode)_10%,var(--card))]'
+                  : 'border-line bg-card hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--mode)_45%,var(--card))]',
               )}
             >
               <span className="flex items-center gap-2 font-heading text-base font-bold">
@@ -152,7 +152,7 @@ export function ItemForm({ item, defaultType = 'VOCABULARY', defaultLessonIds = 
       {item && <SkillChip mode={ITEM_TYPE_META[type].mode} label={ITEM_TYPE_META[type].label} />}
 
       {saved && (
-        <p role="status" className="flex items-center gap-2 rounded-control bg-good-soft px-4 py-3 text-base font-semibold text-good-edge">
+        <p role="status" className="flex items-center gap-2 rounded-control bg-good-soft px-4 py-3 text-base font-semibold text-good-ink">
           <Check className="size-5" strokeWidth={3} /> Saved “{saved}”. Add the next one.
         </p>
       )}
@@ -246,12 +246,12 @@ export function ItemForm({ item, defaultType = 'VOCABULARY', defaultLessonIds = 
       </Card>
 
       {mutation.isError && Object.keys(serverErrors).length === 0 && (
-        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
           {errorMessage(mutation.error)}
         </p>
       )}
       {mutation.isError && Object.keys(serverErrors).length > 0 && (
-        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
           Please check the highlighted fields.
         </p>
       )}

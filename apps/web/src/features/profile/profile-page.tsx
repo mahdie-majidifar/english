@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Field, SelectField } from '@/components/ui/field';
 import { cn } from '@/lib/cn';
 import { errorMessage } from '@/lib/errors';
+import { ThemePicker } from '@/components/ui/theme-controls';
 import { useProfile, useUpdateProfile } from './hooks';
 
 function DifficultyPicker({ value, onPick, saving }: { value: Difficulty; onPick: (d: Difficulty) => void; saving: boolean }) {
@@ -101,7 +102,7 @@ function SettingsForm({ profile }: { profile: Profile }) {
         <Field label="What do you want from English?" name="learningGoal" defaultValue={profile.learningGoal ?? ''} maxLength={300} placeholder="Speak better at work" />
       </div>
       {update.isError && (
-        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
           {errorMessage(update.error)}
         </p>
       )}
@@ -110,7 +111,7 @@ function SettingsForm({ profile }: { profile: Profile }) {
           Save
         </Button>
         {saved && (
-          <span role="status" className="inline-flex items-center gap-2 text-base font-semibold text-good-edge">
+          <span role="status" className="inline-flex items-center gap-2 text-base font-semibold text-good-ink">
             <Check className="size-4" strokeWidth={3} /> Saved
           </span>
         )}
@@ -134,7 +135,7 @@ export function ProfilePage() {
       {profile.isPending ? (
         <div className="h-72 animate-pulse rounded-card bg-subtle" aria-busy />
       ) : profile.isError ? (
-        <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-edge">
+        <Card role="alert" className="border-bad/40 bg-bad-soft text-bad-ink">
           {errorMessage(profile.error)}
         </Card>
       ) : (
@@ -144,6 +145,15 @@ export function ProfilePage() {
             saving={update.isPending}
             onPick={(difficulty) => update.mutate({ difficulty })}
           />
+          <section aria-labelledby="appearance" className="space-y-3">
+            <div>
+              <h2 id="appearance" className="font-heading text-2xl font-extrabold tracking-tight">
+                Appearance
+              </h2>
+              <p className="fa mt-0.5 text-sm text-mute">روشن یا تیره. روی همین دستگاه ذخیره می‌شود.</p>
+            </div>
+            <ThemePicker />
+          </section>
           <section aria-labelledby="about" className="space-y-3">
             <h2 id="about" className="font-heading text-2xl font-extrabold tracking-tight">
               About you

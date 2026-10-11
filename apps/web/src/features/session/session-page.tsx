@@ -80,9 +80,9 @@ function ResultView({ result, onMore }: { result: SessionResultDto; onMore: () =
 
       <dl className="grid grid-cols-3 gap-3">
         {[
-          ['Correct', result.correct, 'bg-good-soft text-good-edge'],
-          ['Almost', result.almost, 'bg-flame/10 text-[#b36b00]'],
-          ['To review', result.wrong, 'bg-bad-soft text-bad-edge'],
+          ['Correct', result.correct, 'bg-good-soft text-good-ink'],
+          ['Almost', result.almost, 'bg-flame/10 text-amber-ink'],
+          ['To review', result.wrong, 'bg-bad-soft text-bad-ink'],
         ].map(([label, value, tone]) => (
           <div key={String(label)} className={cn('rounded-2xl px-4 py-4 text-center', String(tone))}>
             <dd className="font-heading text-3xl font-extrabold">{String(value)}</dd>
@@ -256,7 +256,7 @@ export function SessionPage() {
     return (
       <Centered>
         <Card role="alert" className="w-full space-y-4 border-bad/40 bg-bad-soft text-center">
-          <p className="text-lg font-semibold text-bad-edge">{errorMessage(open.error, 'We could not plan your session.')}</p>
+          <p className="text-lg font-semibold text-bad-ink">{errorMessage(open.error, 'We could not plan your session.')}</p>
           <div className="flex justify-center gap-3">
             <Button onClick={() => setRound((r) => r + 1)}>Try again</Button>
             <Link href="/" className={buttonClass('secondary', 'md')}>

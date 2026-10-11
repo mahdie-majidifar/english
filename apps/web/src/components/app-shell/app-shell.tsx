@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import type { AuthUser } from '@coach/contracts';
 import { Dialog } from '@/components/ui/dialog';
+import { ThemeToggle } from '@/components/ui/theme-controls';
 import { BrandMark } from '@/components/ui/spark';
 import { useLogout } from '@/features/auth/use-auth';
 import { cn } from '@/lib/cn';
@@ -120,6 +121,7 @@ function Shell({ user, children }: { user: AuthUser; children: ReactNode }) {
             <p className="truncate text-base font-semibold">{user.displayName}</p>
             <p className="truncate text-sm text-mute">{user.email}</p>
           </div>
+          <ThemeToggle />
           <button
             type="button"
             onClick={() => logout.mutate()}

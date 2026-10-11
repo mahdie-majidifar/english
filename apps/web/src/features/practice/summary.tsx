@@ -54,9 +54,9 @@ export function PracticeSummary({ exercises, steps, elapsedSeconds, onAgain, bac
   const seconds = elapsedSeconds % 60;
 
   const stats = [
-    { label: 'Correct', value: s.correct, tone: 'text-good-edge bg-good-soft' },
-    { label: 'Almost', value: s.almost, tone: 'text-[#b36b00] bg-flame/10' },
-    { label: 'To review', value: s.wrong, tone: 'text-bad-edge bg-bad-soft' },
+    { label: 'Correct', value: s.correct, tone: 'text-good-ink bg-good-soft' },
+    { label: 'Almost', value: s.almost, tone: 'text-amber-ink bg-flame/10' },
+    { label: 'To review', value: s.wrong, tone: 'text-bad-ink bg-bad-soft' },
     { label: 'Skipped', value: s.skipped, tone: 'text-mute bg-subtle' },
   ];
 

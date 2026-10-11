@@ -34,7 +34,7 @@ function AddMaterial({ sessionId }: { sessionId: string }) {
     <Card className="space-y-5">
       <MaterialInput value={draft} onChange={setDraft} />
       {add.isError && (
-        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
           {errorMessage(add.error)}
         </p>
       )}
@@ -65,7 +65,7 @@ export function SessionDetailPage() {
   if (session.isError) {
     return (
       <Card role="alert" className="border-bad/40 bg-bad-soft">
-        <p className="text-lg font-semibold text-bad-edge">{errorMessage(session.error, 'We could not load this class.')}</p>
+        <p className="text-lg font-semibold text-bad-ink">{errorMessage(session.error, 'We could not load this class.')}</p>
         <Link href="/teacher" className="mt-3 inline-block font-semibold underline">
           Back to teacher notes
         </Link>

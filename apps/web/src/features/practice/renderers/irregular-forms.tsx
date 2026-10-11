@@ -47,9 +47,9 @@ function FormInput({
         className={cn(
           'h-16 w-full rounded-2xl border-2 bg-card px-4 text-center font-heading text-2xl font-bold outline-none transition-[border-color,box-shadow,background-color]',
           !verdict && 'border-line focus:border-brand focus:shadow-[0_0_0_4px_var(--brand-soft)]',
-          verdict === 'correct' && 'border-good bg-good-soft text-good-edge',
-          verdict === 'almost' && 'border-flame bg-flame/10 text-[#b36b00]',
-          verdict === 'wrong' && 'animate-wrong border-bad bg-bad-soft text-bad-edge',
+          verdict === 'correct' && 'border-good bg-good-soft text-good-ink',
+          verdict === 'almost' && 'border-flame bg-flame/10 text-amber-ink',
+          verdict === 'wrong' && 'animate-wrong border-bad bg-bad-soft text-bad-ink',
         )}
       />
     </label>

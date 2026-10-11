@@ -31,8 +31,8 @@ export function PracticePage() {
   const weak = stats?.weakAreas.reduce((n, a) => n + a.items.length, 0) ?? 0;
   const focus = [
     { scope: 'due', icon: RotateCw, tone: 'bg-brand-soft text-brand', title: 'Due for review', n: stats?.reviews.dueCount ?? 0, body: 'Items you are about to forget.' },
-    { scope: 'mistakes', icon: Flag, tone: 'bg-bad-soft text-bad-edge', title: 'My mistakes', n: openMistakes, body: 'Things you got wrong before.' },
-    { scope: 'weak', icon: Target, tone: 'bg-flame/15 text-[#b36b00]', title: 'Weak items', n: weak, body: 'Items you often miss.' },
+    { scope: 'mistakes', icon: Flag, tone: 'bg-bad-soft text-bad-ink', title: 'My mistakes', n: openMistakes, body: 'Things you got wrong before.' },
+    { scope: 'weak', icon: Target, tone: 'bg-flame/15 text-amber-ink', title: 'Weak items', n: weak, body: 'Items you often miss.' },
   ]
     .filter((c) => c.n > 0)
     .map((c) => ({ ...c, body: `${c.n} · ${c.body}` }));
@@ -150,7 +150,7 @@ export function PracticePage() {
                   style={{ '--mode': MODES[meta.mode].color } as CSSProperties}
                   className="flex items-center gap-4 border-l-4 border-l-[var(--mode)] p-4"
                 >
-                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[color-mix(in_srgb,var(--mode)_14%,white)] font-heading text-xl font-extrabold text-[var(--mode)]">
+                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[color-mix(in_srgb,var(--mode)_14%,var(--card))] font-heading text-xl font-extrabold text-[var(--mode)]">
                     {counts[type]}
                   </span>
                   <span className="font-heading text-lg font-bold">{meta.plural}</span>

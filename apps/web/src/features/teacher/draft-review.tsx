@@ -125,7 +125,7 @@ function Row({
       style={{ '--mode': MODES[meta.mode].color } as CSSProperties}
       className={cn(
         'space-y-4 rounded-2xl border bg-card p-4 transition-opacity',
-        row.include ? 'border-[color-mix(in_srgb,var(--mode)_45%,white)]' : 'border-line opacity-70',
+        row.include ? 'border-[color-mix(in_srgb,var(--mode)_45%,var(--card))]' : 'border-line opacity-70',
       )}
     >
       <div className="flex flex-wrap items-center gap-3">
@@ -148,7 +148,7 @@ function Row({
           aria-label="Type"
           value={item.type}
           onChange={(e) => patchItem({ type: e.target.value as ItemType })}
-          className="h-10 cursor-pointer rounded-full border-0 bg-[color-mix(in_srgb,var(--mode)_12%,white)] px-4 text-sm font-semibold text-[var(--mode)] outline-none"
+          className="h-10 cursor-pointer rounded-full border-0 bg-[color-mix(in_srgb,var(--mode)_12%,var(--card))] px-4 text-sm font-semibold text-[var(--mode)] outline-none"
         >
           {TYPE_ORDER.map((t) => (
             <option key={t} value={t}>
@@ -158,10 +158,10 @@ function Row({
         </select>
 
         {row.known && (
-          <span className="rounded-full bg-good-soft px-3 py-1 text-sm font-semibold text-good-edge">Already in your library</span>
+          <span className="rounded-full bg-good-soft px-3 py-1 text-sm font-semibold text-good-ink">Already in your library</span>
         )}
         {item.confidence !== 'high' && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-formation/15 px-3 py-1 text-sm font-semibold text-[#9a6200]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-formation/15 px-3 py-1 text-sm font-semibold text-amber-ink">
             <AlertTriangle className="size-4" aria-hidden />
             {item.confidence === 'low' ? 'Please check this' : 'Worth a look'}
           </span>
@@ -171,7 +171,7 @@ function Row({
           type="button"
           onClick={onRemove}
           aria-label={`Remove ${item.headword || 'item'}`}
-          className="ml-auto grid size-10 place-items-center rounded-control text-mute transition-colors hover:bg-bad-soft hover:text-bad-edge"
+          className="ml-auto grid size-10 place-items-center rounded-control text-mute transition-colors hover:bg-bad-soft hover:text-bad-ink"
         >
           <Trash2 className="size-5" />
         </button>
@@ -194,7 +194,7 @@ function Row({
       {item.examples.length > 0 && <p className="text-base text-mute">“{item.examples[0]}”</p>}
 
       {problem && (
-        <p role="status" className="flex items-center gap-2 text-base font-medium text-[#9a6200]">
+        <p role="status" className="flex items-center gap-2 text-base font-medium text-amber-ink">
           <AlertTriangle className="size-4 shrink-0" aria-hidden /> {problem}. Fill it in to include this item.
         </p>
       )}
@@ -218,7 +218,7 @@ export function CommitSummary({ result, sessionId }: { result: CommitResult; ses
         </p>
       </div>
       {result.skipped.length > 0 && (
-        <div className="rounded-control bg-formation/15 px-4 py-3 text-left text-base text-[#7a4f00]">
+        <div className="rounded-control bg-formation/15 px-4 py-3 text-left text-base text-amber-ink">
           <p className="font-semibold">Not saved:</p>
           <ul className="mt-1 list-disc pl-5">
             {result.skipped.map((s) => (
@@ -369,7 +369,7 @@ export function DraftReview({ material, onCommitted }: { material: MaterialDto; 
       )}
 
       {commit.isError && (
-        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+        <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
           {errorMessage(commit.error)}
         </p>
       )}

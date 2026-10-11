@@ -48,7 +48,7 @@ function Intro({ dto, resuming, secondsLeft, starting, error, onStart }: {
 
   return (
     <Centered>
-      <Card className={`w-full space-y-7 p-8 sm:p-10 ${boss ? 'border-ink bg-ink text-white' : ''}`}>
+      <Card className={`w-full space-y-7 p-8 sm:p-10 ${boss ? 'border-deep bg-deep text-white' : ''}`}>
         <div className="space-y-3 text-center">
           <span className={`mx-auto grid size-16 place-items-center rounded-2xl text-white ${boss ? 'bg-bad shadow-[0_4px_0_var(--bad-edge)]' : 'bg-brand shadow-[0_4px_0_var(--brand-edge)]'}`}>
             {boss ? <Swords className="size-8" /> : isQuiz ? <ListChecks className="size-8" /> : <GraduationCap className="size-8" />}
@@ -84,7 +84,7 @@ function Intro({ dto, resuming, secondsLeft, starting, error, onStart }: {
         </ul>
 
         {error && (
-          <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+          <p role="alert" className="rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
             {error}
           </p>
         )}
@@ -115,7 +115,7 @@ function HandIn({ run, error, onRetry }: { run: () => void; error: string | null
     return (
       <Centered>
         <Card role="alert" className="w-full space-y-4 border-bad/40 bg-bad-soft text-center">
-          <p className="text-lg font-semibold text-bad-edge">{error}</p>
+          <p className="text-lg font-semibold text-bad-ink">{error}</p>
           <Button onClick={onRetry}>Try again</Button>
         </Card>
       </Centered>
@@ -195,7 +195,7 @@ export function TakePage() {
     return (
       <Centered>
         <Card role="alert" className="w-full space-y-4 border-bad/40 bg-bad-soft text-center">
-          <p className="text-lg font-semibold text-bad-edge">{errorMessage(query.error, 'We could not open this.')}</p>
+          <p className="text-lg font-semibold text-bad-ink">{errorMessage(query.error, 'We could not open this.')}</p>
           <Link href="/assessments" className={buttonClass('secondary', 'md')}>
             Back
           </Link>

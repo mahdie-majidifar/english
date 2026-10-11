@@ -64,7 +64,7 @@ export function SessionsPage() {
 
       {sessions.isError && (
         <Card role="alert" className="border-bad/40 bg-bad-soft">
-          <p className="text-lg font-semibold text-bad-edge">We could not load your class sessions.</p>
+          <p className="text-lg font-semibold text-bad-ink">We could not load your class sessions.</p>
           <Button variant="secondary" className="mt-4" onClick={() => sessions.refetch()}>
             Try again
           </Button>

@@ -6,9 +6,9 @@ const META: Record<IngestionStatus, { label: string; className: string; icon: ty
   UPLOADED: { label: 'Waiting', className: 'bg-subtle text-mute', icon: Loader2, spin: true },
   EXTRACTING: { label: 'Reading', className: 'bg-brand-soft text-brand', icon: Loader2, spin: true },
   PARSING: { label: 'Understanding', className: 'bg-brand-soft text-brand', icon: Loader2, spin: true },
-  AWAITING_REVIEW: { label: 'Needs review', className: 'bg-formation/15 text-[#9a6200]', icon: Eye },
-  COMMITTED: { label: 'Saved', className: 'bg-good-soft text-good-edge', icon: CheckCircle2 },
-  FAILED: { label: 'Failed', className: 'bg-bad-soft text-bad-edge', icon: AlertTriangle },
+  AWAITING_REVIEW: { label: 'Needs review', className: 'bg-formation/15 text-amber-ink', icon: Eye },
+  COMMITTED: { label: 'Saved', className: 'bg-good-soft text-good-ink', icon: CheckCircle2 },
+  FAILED: { label: 'Failed', className: 'bg-bad-soft text-bad-ink', icon: AlertTriangle },
   DISCARDED: { label: 'Discarded', className: 'bg-subtle text-mute', icon: Trash2 },
 };
 

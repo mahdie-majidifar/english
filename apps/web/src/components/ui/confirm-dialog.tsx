@@ -28,7 +28,7 @@ export function ConfirmDialog({
   return (
     <Dialog open={open} onClose={onClose} title={title} description={description}>
       {error && (
-        <p role="alert" className="mb-4 rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-edge">
+        <p role="alert" className="mb-4 rounded-control bg-bad-soft px-4 py-3 text-base font-medium text-bad-ink">
           {error}
         </p>
       )}

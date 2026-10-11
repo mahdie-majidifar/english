@@ -33,7 +33,7 @@ export function AiNotice() {
   return (
     <div role="note" className="mb-5 rounded-control border border-flame/40 bg-flame/10 px-4 py-3">
       <div className="flex items-start gap-3">
-        <Sparkles className="mt-0.5 size-4 shrink-0 text-[#b36b00]" aria-hidden />
+        <Sparkles className="mt-0.5 size-4 shrink-0 text-amber-ink" aria-hidden />
         <div className="min-w-0 flex-1">
           <p className="text-sm text-ink">
             <b>{demo ? 'The AI is in demo mode.' : 'The AI is not set up yet.'}</b>{' '}
@@ -83,7 +83,7 @@ export function AiNotice() {
               /* private mode: it just comes back on the next visit */
             }
           }}
-          className="grid size-7 shrink-0 place-items-center rounded-control text-mute hover:bg-white/60 hover:text-ink"
+          className="grid size-7 shrink-0 place-items-center rounded-control text-mute hover:bg-card/60 hover:text-ink"
         >
           <X className="size-4" />
         </button>

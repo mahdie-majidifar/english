@@ -27,7 +27,7 @@ export function QuizButton({ lessonId, unitId }: { lessonId?: string; unitId?: s
         <ListChecks className="size-4" /> Quiz
       </Button>
       {create.isError && (
-        <span role="alert" className="max-w-56 text-sm font-medium text-bad-edge">
+        <span role="alert" className="max-w-56 text-sm font-medium text-bad-ink">
           {errorMessage(create.error)}
         </span>
       )}
