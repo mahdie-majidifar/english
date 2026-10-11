@@ -20,6 +20,9 @@ export async function register(page: Page, learner = newLearner()) {
 
 const visible = (locator: ReturnType<Page['locator']>) => locator.first().isVisible().catch(() => false);
 
+/** The options of a multiple-choice question (buttons with role "radio"; the number and the text sit in separate spans). */
+const choices = (page: Page) => page.getByRole('radiogroup', { name: 'Answers' }).getByRole('radio');
+
 /** The things an exercise can ask you to touch or type into. */
 const interactive = (page: Page) =>
   page
@@ -27,7 +30,7 @@ const interactive = (page: Page) =>
     .or(page.getByRole('list', { name: 'Words' }).getByRole('button'))
     .or(page.getByLabel('Words to use').getByRole('button'))
     .or(page.locator('main input[type="text"], main input:not([type]), main textarea'))
-    .or(page.locator('main button').filter({ hasText: /^s*1s/ }));
+    .or(choices(page));
 
 /** Fills in whatever the exercise on screen asks for, whatever its format. Returns false when it does not know how. */
 async function fillIn(page: Page): Promise<boolean> {
@@ -68,10 +71,10 @@ async function fillIn(page: Page): Promise<boolean> {
     return true;
   }
 
-  // A choice: the options are buttons that start with their number.
-  const option = page.locator('main button').filter({ hasText: /^\s*1\s/ });
-  if (await visible(option)) {
-    await option.first().click();
+  // A choice: tap the first option.
+  const options = choices(page);
+  if (await visible(options)) {
+    await options.first().click();
     return true;
   }
   return false;
@@ -81,7 +84,11 @@ async function fillIn(page: Page): Promise<boolean> {
  * Answers the exercise on screen and moves on, the way a person does: fill it in, press Check, press
  * Continue. The point is to drive the player, not to get answers right.
  */
-/** What the helper could not answer, so a failing test can say what it was. */
+/**
+ * What the helper could not answer. It used to press Skip and carry on, which hid its own mistakes (a daily session
+ * of skipped exercises is refused with a 409). Now an exercise it cannot answer stops the test with what was on screen,
+ * so it is clear whether the helper or the app is wrong.
+ */
 export const skipped: string[] = [];
 
 export async function answerCurrent(page: Page): Promise<void> {
@@ -89,11 +96,11 @@ export async function answerCurrent(page: Page): Promise<void> {
   if (await gotIt.isVisible().catch(() => false)) await gotIt.click();
 
   if (!(await fillIn(page))) {
-    skipped.push((await page.locator('main').innerText().catch(() => '?')).replace(/s+/g, ' ').slice(0, 160));
+    const text = (await page.locator('main').innerText().catch(() => '?')).replace(/\s+/g, ' ').slice(0, 200);
+    const html = (await page.locator('main').innerHTML().catch(() => '?')).replace(/\s+/g, ' ').slice(0, 800);
+    skipped.push(text);
     await page.screenshot({ path: `skipped-${skipped.length}.png` }).catch(() => undefined);
-    skipped.push(`HTML: ${(await page.locator('main').innerHTML().catch(() => '?')).replace(/s+/g, ' ').slice(0, 700)}`);
-    await page.getByRole('button', { name: 'Skip' }).click();
-    return;
+    throw new Error(`The exercise on screen has nothing to answer.\nTEXT: ${text}\nHTML: ${html}`);
   }
 
   // Some formats send themselves (a flashcard rating); the others wait for Check (or Next, in an exam).
