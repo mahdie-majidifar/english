@@ -423,6 +423,32 @@ describe.skipIf(!hasDatabase())('learning loop: scheduling, mistakes, daily sess
     });
   });
 
+  describe('when everything was practised already today', () => {
+    it('still plans a review round instead of saying there is nothing to practise', async () => {
+      const dave = await signedInAgent(ctx, 'dave@example.com');
+      for (const [headword, meaningFa] of [['alpha', 'آلفا'], ['beta', 'بتا'], ['gamma', 'گاما'], ['delta', 'دلتا']]) {
+        await dave.post(`${API}/items`).send({ type: 'VOCABULARY', headword, meaningFa }).expect(201);
+      }
+      // Practise them all, the way a learner does from the Practice page.
+      const run = (await dave.post(`${API}/practice`).send({ scope: 'all', count: 12 }).expect(200)).body;
+      for (const ex of run.exercises) {
+        await dave
+          .post(`${API}/attempts`)
+          .send({ clientAttemptId: randomUUID(), exerciseId: ex.id, response: await answerFor(ctx.prisma, ex.id, true), durationMs: 4000 })
+          .expect(200);
+      }
+
+      const res = await dave.post(`${API}/daily-sessions`).send({}).expect(200);
+      expect(res.body.session).not.toBeNull();
+      expect(res.body.session.exercises.length).toBeGreaterThan(0);
+    });
+
+    it('still says there is nothing to practise when the learner has no items at all', async () => {
+      const erin = await signedInAgent(ctx, 'erin@example.com');
+      expect((await erin.post(`${API}/daily-sessions`).send({}).expect(200)).body.session).toBeNull();
+    });
+  });
+
   describe('the learner’s own calendar day', () => {
     it('counts activity on the learner’s local date, not UTC', async () => {
       const carol = await signedInAgent(ctx, 'carol@example.com');

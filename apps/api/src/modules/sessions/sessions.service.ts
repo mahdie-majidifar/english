@@ -17,6 +17,7 @@ import {
   toLocalDate,
   usableExercises,
   type PlannerItem,
+  type PlannerWeights,
   type PoolExercise,
 } from '@coach/domain';
 import { DomainError, notFound } from '../../core/http/domain-error.js';
@@ -223,11 +224,22 @@ export class SessionsService {
     });
 
     // Only the most promising items get exercises prepared; the rest cannot make the session anyway.
-    const promising = planners
-      .map((p) => ({ ...p, score: scoreItem(p.planner, now, DEFAULT_WEIGHTS).score }))
-      .filter((p) => p.score >= MIN_CANDIDATE_SCORE)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, CANDIDATE_LIMIT);
+    const choose = (weights: PlannerWeights) =>
+      planners
+        .map((p) => ({ ...p, score: scoreItem(p.planner, now, weights).score }))
+        .filter((p) => p.score >= MIN_CANDIDATE_SCORE)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, CANDIDATE_LIMIT);
+    let weights: PlannerWeights = DEFAULT_WEIGHTS;
+    let promising = choose(weights);
+    if (promising.length === 0) {
+      // Nothing is due, new or weak (or it was all practised today). The learner still asked for a
+      // session, so give them a review round of what they know least, instead of a screen telling them
+      // there is nothing to practise. The review schedule only moves on the first answer of a day, so
+      // repeating items does it no harm.
+      weights = { ...DEFAULT_WEIGHTS, seenToday: 0, freeReview: 1 };
+      promising = choose(weights);
+    }
     if (promising.length === 0) return null;
 
     await this.exercises.ensureTemplatesFor(userId, promising.map((p) => toInput(p.item)));
@@ -247,7 +259,7 @@ export class SessionsService {
       }));
     }
 
-    const plan = planDailySession(promising.map((p) => p.planner), { budgetSeconds, maxNewItems: 5, startLevel: rules.startLevel, now }, Math.random);
+    const plan = planDailySession(promising.map((p) => p.planner), { budgetSeconds, maxNewItems: 5, startLevel: rules.startLevel, weights: { seenToday: weights.seenToday, freeReview: weights.freeReview }, now }, Math.random);
     if (plan.steps.length === 0) return null;
 
     const session = await this.prisma.dailySession.create({

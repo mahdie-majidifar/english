@@ -66,6 +66,7 @@ pnpm db:migrate
 | `pnpm test` | اجرای همه‌ی تست‌ها (تست‌های API روی دیتابیس `coach_test` که خودکار ساخته میشه؛ هیچ‌وقت به OpenAI وصل نمی‌شن) |
 | `pnpm db:migrate` | اعمال تغییرات schema و generate کردن client |
 | `pnpm db:seed` | ساخت/به‌روزرسانی حساب کاربری از `.env` |
+| `pnpm e2e` | تست‌های مرورگر (Playwright): ۱۴ سناریو روی دسکتاپ و موبایل، با دیتابیس و پورت‌های جدا (اول `pnpm build`) |
 | `pnpm start:local` | ساخت، به‌روزرسانی دیتابیس و اجرای API و وب |
 | `pnpm backup` | نسخه‌ی پشتیبان از دیتابیس در پوشه‌ی `backups/` (۱۴ تای آخر نگه داشته میشن) |
 
@@ -98,3 +99,12 @@ pg_restore --clean --if-exists --no-owner -d "postgresql://USER:PASS@localhost:5
 ```
 
 پوشه‌ی `storage/` (فایل‌های آپلودشده‌ی معلم) هم جدا نگه داشته میشه و در پشتیبان دیتابیس نیست؛ آن را هم کپی کنید.
+
+## تست با مرورگر واقعی (E2E)
+
+```bash
+pnpm build
+pnpm e2e
+```
+
+مرورگر Chromium یک‌بار با `pnpm --filter @coach/e2e exec playwright install chromium` نصب میشه. تست‌ها API و سایت را روی پورت‌های ۴۱۰۰ و ۳۱۰۰ و روی دیتابیس جدا (`coach_e2e`، هر بار از صفر ساخته میشه) بالا میارن و با AI نمایشی کار می‌کنن، پس به داده‌ی واقعی تو دست نمی‌زنن. سناریوها: ثبت‌نام، افزودن کتاب، پر کردن درس با AI، آموزش، تمرین، جلسه‌ی روزانه، Quiz، Exam (با Back)، Progress و Achievements، تنظیم سختی، خروج؛ و روی موبایل: منوی More و نبودن اسکرول افقی.

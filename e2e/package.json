@@ -1,0 +1,18 @@
+{
+  "name": "@coach/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:watch": "node watch.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.15.0",
+    "pg": "^8.23.1",
+    "typescript": "^6.0.2"
+  }
+}

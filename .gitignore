@@ -25,3 +25,12 @@ apps/api/src/generated
 
 # database backups (can hold personal data)
 backups/
+
+# end-to-end test output
+e2e/test-results/
+e2e/playwright-report/
+e2e/.storage/
+e2e/runs/
+e2e/skipped-*.png
+e2e/loop.log
+e2e/watch.log

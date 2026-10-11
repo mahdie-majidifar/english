@@ -56,6 +56,44 @@ const due = (patch: Partial<NonNullable<PlannerItem['state']>> = {}) =>
 const plan = (items: PlannerItem[], config: Partial<Parameters<typeof planDailySession>[1]> = {}) =>
   planDailySession(items, { budgetSeconds: 600, maxNewItems: 5, now: NOW, ...config }, seededRng('plan'));
 
+describe('free review', () => {
+  const now = new Date('2026-10-10T10:00:00Z');
+  const known = (id: string, mastery: number, extra: Partial<PlannerItem> = {}): PlannerItem => ({
+    id,
+    state: { status: 'REVIEW', due: new Date('2026-11-01T00:00:00Z'), retrievability: 0.95, mastery, isWeak: false, currentLevel: 'RECALL' },
+    mistakePriority: 0,
+    inCurrentLesson: false,
+    teacherRecency: 0,
+    seenToday: false,
+    pool: [{ id: `e-${id}`, format: 'multiple_choice', level: 'RECALL', estimatedSeconds: 15, recentlyAnswered: false }],
+    ...extra,
+  });
+
+  it('does nothing on its own: items that are not due stay out', () => {
+    expect(scoreItem(known('a', 0.2), now, DEFAULT_WEIGHTS).score).toBe(0);
+  });
+
+  it('when switched on, the less an item is known the higher it ranks', () => {
+    const weights = { ...DEFAULT_WEIGHTS, freeReview: 1 };
+    const low = scoreItem(known('a', 0.2), now, weights).score;
+    const high = scoreItem(known('b', 0.9), now, weights).score;
+    expect(low).toBeGreaterThan(high);
+    expect(low).toBeCloseTo(0.8);
+  });
+
+  it('a session can then be built from items that are not due', () => {
+    const items = [known('a', 0.2), known('b', 0.5), known('c', 0.95)];
+    expect(planDailySession(items, { budgetSeconds: 600, maxNewItems: 5, now }, () => 0.5).steps).toEqual([]);
+    const plan = planDailySession(items, { budgetSeconds: 600, maxNewItems: 5, now, weights: { freeReview: 1 } }, () => 0.5);
+    expect(plan.steps.map((s) => s.itemId)).toEqual(['a', 'b']); // the well-known one is left out
+  });
+
+  it('never applies to new items, which have their own weight', () => {
+    const fresh: PlannerItem = { ...known('n', 0), state: null };
+    expect(scoreItem(fresh, now, { ...DEFAULT_WEIGHTS, freeReview: 1 }).score).toBe(DEFAULT_WEIGHTS.newItem);
+  });
+});
+
 describe('scoreItem', () => {
   const w = DEFAULT_WEIGHTS;
 

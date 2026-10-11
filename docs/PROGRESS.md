@@ -5,7 +5,7 @@
 
 ## وضعیت یک‌خطی
 
-فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۴۵۹ تست). فاز ۶ تمام است به‌جز متن مربی AI (به کلید OpenAI وابسته است و در T9 می‌آید). فاز ۷ بیشترش انجام شد. مانده: T8 (عنوان درس‌ها، منتظر کاربر)، بقیه‌ی T7، و T9 (OpenAI، آخر).
+فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۴۶۵ تست + ۱۴ سناریوی E2E). فاز ۶ تمام است به‌جز متن مربی AI (به کلید OpenAI وابسته است و در T9 می‌آید). فاز ۷ بیشترش انجام شد. مانده: T8 (عنوان درس‌ها، منتظر کاربر)، بقیه‌ی T7، و T9 (OpenAI، آخر).
 
 ## ✅ فهرست کارهای باقی‌مانده، به ترتیب اجرا (OpenAI عمداً آخر است)
 
@@ -19,7 +19,7 @@
 | T4 | چالش‌های روزانه و هفتگی | ✅ | یک چالش روزانه (+۱۵ XP) و یک هفتگی (+۶۰ XP) که از روی تاریخ انتخاب می‌شوند (بدون ذخیره‌ی برنامه)؛ پاداش فقط یک‌بار در `XpEvent` (دلیل `CHALLENGE`)؛ کارت در داشبورد؛ `GET /challenges`؛ achievement «Challenger»؛ ۱۹ تست |
 | T5 | Exam: برگشت به سؤال قبلی، وزن بیشتر Exam در ارتقای سطح، Exam برای Grammar و Vocabulary | ✅ | دکمه‌ی Back در Exam (جواب قبلی برمی‌گردد و قابل تغییر است)؛ جواب درست در Exam دو برابر در ارتقای سطح حساب می‌شود (`evidenceWeight`)؛ دو preset جدید `GRAMMAR` و `VOCABULARY` برای Exam روی همه‌ی کتاب‌ها |
 | T6 | صیقل micro-interactionها | ✅ | شمارش تدریجی XP در نتیجه‌ها (`CountUp`، با احترام به reduced-motion)، محو شدن نرم بین صفحه‌ها؛ انیمیشن‌های قبلی (pop، slide، flame) سر جایشان |
-| T7 | فاز ۷ پایدارسازی: تست E2E، سرعت، امنیت، بکاپ دیتابیس | 🔄 | **انجام شد:** تست مسیر کامل یک کاربر (`journey.spec.ts`، ۱۱ مرحله از ثبت‌نام تا Achievement)؛ هدرهای امنیتی صفحه‌ها؛ rate limit جداگانه برای همه‌ی مسیرهای AI؛ سه index جدید؛ `pnpm backup` (pg_dump، ۱۴ نسخه‌ی آخر) و راهنمای restore؛ `pnpm start:local` (ساخت، migrate، اجرای API و وب با یک دستور). **مانده:** تست E2E واقعی با مرورگر (Playwright؛ دانلود مرورگر لازم است و باید با اجازه‌ی کاربر باشد)، CSP سخت‌گیرانه (Next اسکریپت inline دارد)، سنجش سرعت با داده‌ی حجیم |
+| T7 | فاز ۷ پایدارسازی: تست E2E، سرعت، امنیت، بکاپ دیتابیس | 🔄 (E2E انجام شد، یک ناپایداری مانده) | **انجام شد:** تست مسیر کامل یک کاربر (`journey.spec.ts`، ۱۱ مرحله از ثبت‌نام تا Achievement)؛ هدرهای امنیتی صفحه‌ها؛ rate limit جداگانه برای همه‌ی مسیرهای AI؛ سه index جدید؛ `pnpm backup` (pg_dump، ۱۴ نسخه‌ی آخر) و راهنمای restore؛ `pnpm start:local` (ساخت، migrate، اجرای API و وب با یک دستور). **E2E با مرورگر واقعی (Playwright) هم نصب و نوشته شد** (پوشه‌ی `e2e/`، ۱۴ سناریو دسکتاپ و موبایل، `pnpm e2e`؛ جزئیات پایین). **مانده:** رفع ناپایداری E2E (بخش «E2E: وضعیت دقیق»)، CSP سخت‌گیرانه (Next اسکریپت inline دارد)، سنجش سرعت با داده‌ی حجیم |
 | T8 | عنوان درس‌های AEF و Collocations | ⏸️ منتظر کاربر | کاربر فهرست محتوای کتاب‌ها را می‌فرستد یا با Paste contents وارد می‌کند |
 | **T9** | **OpenAI (آخر؛ کاربر فردا انجام می‌دهد)** | ⏸️ | خرید و گذاشتن کلید؛ بعد امتحان واقعی همه‌ی مسیرهای AI (تحلیل یادداشت معلم، Explain، Fill with AI، نمره‌ی جواب آزاد)، تنظیم promptها، متن مربی AI برای گزارش هفتگی |
 
@@ -65,6 +65,14 @@
 | Exam برای Grammar / Vocabulary | ✅ | Topic (موضوع) نه؛ فقط نوع آیتم |
 | صیقل micro-interaction | ⏭️ | |
 
+## E2E: وضعیت دقیق (برای ادامه در چت جدید)
+
+- **ساختار:** `e2e/` (workspace `@coach/e2e`). `playwright.config.ts` دو سرور بالا می‌آورد: API ساخته‌شده روی پورت ۴۱۰۰ با `start-api.mjs` (دیتابیس `coach_e2e` را هر بار از صفر می‌سازد و migrate می‌کند؛ AI = mock) و `next dev` روی ۳۱۰۰. تست‌ها: `tests/journey.spec.ts` (۱۱ سناریو دسکتاپ، پشت‌سرهم و وابسته) و `tests/phone.spec.ts` (۳ سناریو موبایل). کمک‌ها: `tests/helpers.ts` (`register`، `answerCurrent`، `playThrough` که هر فرمت تمرین را جواب می‌دهد، `watchApi`، `skipped`).
+- **اجرا:** اول `pnpm build` (E2E از `apps/api/dist` استفاده می‌کند)، بعد `pnpm e2e` (headless). `pnpm e2e:watch` با پنجره‌ی قابل‌دیدن و آهسته؛ این را کاربر باید خودش در ترمینال بزند (از فرایند مخفی Claude، Chrome با خطای `spawn UNKNOWN` باز نمی‌شود).
+- **نتیجه تا الان:** ۱۴ از ۱۴ پاس در بیشتر اجراها (حدود ۵۵ ثانیه). **ناپایداری:** مرحله‌ی «does the daily session…» در حدود ۱ از ۵ اجرا خطا می‌دهد: `POST /daily-sessions/:id/complete -> 409 "Answer at least one exercise before finishing"` و هیچ درخواست جواب (`/attempts`) ناموفق نبوده. یعنی ربات همه‌ی تمرین‌های جلسه را Skip کرده است. در لاگ، `SKIPPED` یک بار فقط متن «Collocation» و یک بار فقط «Vocabulary» (فقط چیپ بالای تمرین) نشان داد. مشکوک: (الف) race در helper، یعنی تمرین هنوز کامل نمایش داده نشده؛ `fillIn` الان تا ۸ ثانیه برای آمدن چیزی قابل‌جواب صبر می‌کند و باز هم رخ داد؛ یا (ب) **یک باگ واقعی رندر** که برای بعضی تمرین‌ها فقط چیپ را نشان می‌دهد و محتوا نمی‌آید. قدم بعدی: اجرای حلقه‌ای `pnpm exec playwright test --project=desktop --output=runs/rN` تا خطا تکرار شود، بعد خواندن `e2e/skipped-N.png`، `HTML:` داخل پیام خطا و خطاهای `PAGE ERROR/CONSOLE` (توسط `watchApi` جمع می‌شوند). اگر باگ واقعی بود (مثلاً یک renderer در `apps/web/src/features/practice/renderers/` برای یک نوع محتوا می‌شکند)، اصلاحش کن و تست مخصوصش را بنویس. اگر فقط race بود، helper را محکم‌تر کن.
+- **باگ واقعی که E2E پیدا کرد و رفع شد:** وقتی همه‌ی آیتم‌ها همان روز تمرین شده بودند «Today's session» می‌گفت «Nothing to practice yet». حالا اگر چیزی due/جدید/ضعیف نباشد، یک دور «free review» از کم‌بلدترین آیتم‌ها می‌سازد (وزن `freeReview` در planner؛ تست‌های domain و integration دارد).
+- فایل‌های موقت E2E (`e2e/runs`, `skipped-*.png`, `loop.log`, `watch.log`, `test-results`) در `.gitignore` هستند.
+
 ## کارهای کوچک باقی‌مانده / بدهی فنی
 
 - chip وضعیت (NEW/LEARNING/…) در Library و جزئیات آیتم همیشه NEW نشان می‌دهد؛ `toItem` در `content.service.ts` وضعیت یادگیری کاربر را نمی‌خواند. باید از `UserItemState` پر شود.
@@ -86,7 +94,7 @@
 
 ## معماری در یک نگاه
 
-monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۴۵۹ تست در زمان نگارش).
+monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۴۶۵ تست در زمان نگارش)؛ تست مرورگر جدا: `pnpm e2e`.
 
 ## نکات اجرایی
 
@@ -102,6 +110,7 @@ monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)�
 
 - 2026-10-07: فازهای ۰ تا ۳.
 - 2026-10-08/10: فاز ۴، رفع باگ کارت‌های سفید (`cn()` با tailwind-merge)، فاز ۵.
+- 2026-10-11: نصب Playwright و نوشتن E2E (۱۴ سناریو)، رفع باگ «Nothing to practice» (free review)، ناپایداری E2E مانده (بالا).
 - 2026-10-10: T6 و بخش بزرگ T7: CountUp، fade، تست مسیر کامل، هدرهای امنیتی، backup، start:local، README.
 - 2026-10-10: T4 و T5: چالش‌ها، Exam دوطرفه (Back)، وزن Exam، Exam گرامر و لغت.
 - 2026-10-10: T1 تا T3: chip وضعیت، منوی More موبایل، رفع نشت جواب، Boss Quiz.

@@ -17,7 +17,9 @@
     "db:migrate": "pnpm --filter @coach/api db:migrate",
     "db:seed": "pnpm --filter @coach/api db:seed",
     "start:local": "node scripts/start-local.mjs",
-    "backup": "node scripts/backup-db.mjs"
+    "backup": "node scripts/backup-db.mjs",
+    "e2e": "pnpm --filter @coach/e2e e2e",
+    "e2e:watch": "pnpm --filter @coach/e2e e2e:watch"
   },
   "devDependencies": {
     "prettier": "^3.4.2",

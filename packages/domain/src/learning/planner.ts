@@ -45,6 +45,11 @@ export interface PlannerWeights {
   currentLesson: number;
   newItem: number;
   seenToday: number;
+  /**
+   * Brings back items that are not due: the less well known, the more it counts. Off (0) normally, so
+   * the schedule decides; switched on only when a learner asks for a session and nothing is due.
+   */
+  freeReview: number;
 }
 
 export const DEFAULT_WEIGHTS: PlannerWeights = {
@@ -55,6 +60,7 @@ export const DEFAULT_WEIGHTS: PlannerWeights = {
   currentLesson: 1,
   newItem: 1.2,
   seenToday: -2.5,
+  freeReview: 0,
 };
 
 export interface PlannerConfig {
@@ -109,7 +115,8 @@ export function scoreItem(item: PlannerItem, now: Date, weights: PlannerWeights)
     weights.teacher * item.teacherRecency +
     weights.currentLesson * (item.inCurrentLesson ? 1 : 0) +
     weights.newItem * (isNewItem(item) ? 1 : 0) +
-    (item.seenToday ? weights.seenToday : 0);
+    (item.seenToday ? weights.seenToday : 0) +
+    (item.state && !isNewItem(item) ? weights.freeReview * (1 - item.state.mastery) : 0);
 
   const reason: SelectionReason = due
     ? 'DUE_REVIEW'
