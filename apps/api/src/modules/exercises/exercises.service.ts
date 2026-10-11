@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import {
   FORMAT_SPECS,
@@ -25,13 +25,18 @@ import {
   type PlannerItem,
 } from '@coach/domain';
 import { DomainError, notFound } from '../../core/http/domain-error.js';
-import { isUniqueViolation } from '../../core/prisma/errors.js';
 import { PrismaService } from '../../core/prisma/prisma.service.js';
 import { Prisma, type Exercise, type ExerciseItem } from '../../generated/prisma/client.js';
 import { ExerciseGeneratorService } from '../ai/exercise-generator.service.js';
 import { LearningService, toPlannerState } from '../learning/learning.service.js';
 
 export const fingerprintOf = (key: string): string => createHash('sha256').update(key).digest('hex');
+
+function chunk<T>(list: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < list.length; i += size) out.push(list.slice(i, i + size));
+  return out;
+}
 
 export type ExerciseWithItems = Exercise & { items: (ExerciseItem & { item: { id: string; headword: string } })[] };
 
@@ -219,16 +224,28 @@ export class ExercisesService {
       select: { fingerprint: true },
     });
     const have = new Set(existing.map((e) => e.fingerprint));
-    let created = 0;
 
+    // The ids are made here so the exercises and their item links go in as two bulk inserts, not one round trip each.
+    // Each gets its own creation time, one millisecond apart, so "oldest first" still means "in the order they were made".
+    const fresh: { id: string; draft: ExerciseDraft; fingerprint: string; createdAt: Date }[] = [];
+    const startedAt = Date.now();
     for (const [index, draft] of drafts.entries()) {
       const fingerprint = fingerprints[index]!;
       if (have.has(fingerprint)) continue;
       have.add(fingerprint);
-      const spec = FORMAT_SPECS[draft.format];
-      try {
-        await this.prisma.exercise.create({
-          data: {
+      fresh.push({ id: randomUUID(), draft, fingerprint, createdAt: new Date(startedAt + fresh.length) });
+    }
+    if (fresh.length === 0) return 0;
+
+    return this.prisma.$transaction(async (tx) => {
+      let created = 0;
+      const stored = new Set<string>();
+      for (const batch of chunk(fresh, 500)) {
+        // `skipDuplicates`: another request stored the same exercise a moment ago, which is fine.
+        const { count } = await tx.exercise.createMany({
+          data: batch.map(({ id, draft, fingerprint, createdAt }) => ({
+            id,
+            createdAt,
             ownerId: userId,
             format: draft.format,
             level: draft.level,
@@ -236,26 +253,32 @@ export class ExercisesService {
             origin,
             content: draft.content as Prisma.InputJsonValue,
             solution: draft.solution as Prisma.InputJsonValue,
-            evaluationMode: spec.evaluation,
-            estimatedSeconds: spec.estimatedSeconds,
+            evaluationMode: FORMAT_SPECS[draft.format].evaluation,
+            estimatedSeconds: FORMAT_SPECS[draft.format].estimatedSeconds,
             fingerprint,
             aiRunId,
-            items: {
-              create: draft.itemIds.map((itemId, i) => ({
-                itemId,
-                // A matching exercise belongs to no single item, so it is never picked for one.
-                isPrimary: draft.format === 'matching' ? false : i === 0,
-              })),
-            },
-          },
+          })),
+          skipDuplicates: true,
         });
-        created++;
-      } catch (error) {
-        // Another request stored the same exercise a moment ago: fine.
-        if (!isUniqueViolation(error)) throw error;
+        created += count;
+        // Which of these ids really went in (a skipped duplicate keeps the other request's exercise and its links).
+        const rows = count === batch.length ? batch.map((b) => ({ id: b.id })) : await tx.exercise.findMany({ where: { id: { in: batch.map((b) => b.id) } }, select: { id: true } });
+        for (const row of rows) stored.add(row.id);
       }
-    }
-    return created;
+
+      const links = fresh
+        .filter((f) => stored.has(f.id))
+        .flatMap(({ id, draft }) =>
+          draft.itemIds.map((itemId, i) => ({
+            exerciseId: id,
+            itemId,
+            // A matching exercise belongs to no single item, so it is never picked for one.
+            isPrimary: draft.format === 'matching' ? false : i === 0,
+          })),
+        );
+      for (const batch of chunk(links, 2000)) await tx.exerciseItem.createMany({ data: batch, skipDuplicates: true });
+      return created;
+    });
   }
 
   /** Active exercises for each item (the ones where the item is the main subject). */

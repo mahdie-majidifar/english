@@ -180,6 +180,16 @@ describe.skipIf(!hasDatabase())('exercises, practice and attempts (real PostgreS
       expect(after).toBeGreaterThanOrEqual(before);
     });
 
+    it('stores an exercise once and links it to its items even when requests arrive together', async () => {
+      // Exercises go in as bulk inserts: two requests building the same pool at once must not duplicate, fail or leave one unlinked.
+      const runs = await Promise.all([practice({ scope: 'all', count: 20 }), practice({ scope: 'all', count: 20 }), practice({ scope: 'all', count: 20 })]);
+      expect(runs.every((r) => r.exercises.length > 0)).toBe(true);
+
+      const groups = await ctx.prisma.exercise.groupBy({ by: ['fingerprint'], _count: true, where: { ownerId: aliceId } });
+      expect(groups.every((g) => g._count === 1)).toBe(true);
+      expect(await ctx.prisma.exercise.count({ where: { ownerId: aliceId, items: { none: {} } } })).toBe(0);
+    });
+
     it('can focus on one item and still offers different exercises', async () => {
       const run = await practice({ scope: 'item', itemId: itemIds['negotiate'], count: 5 });
       expect(run.scopeLabel).toBe('negotiate');
