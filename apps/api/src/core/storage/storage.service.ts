@@ -38,6 +38,11 @@ export class StorageService implements StorageDriver {
     await rm(this.pathFor(key), { force: true });
   }
 
+  /** Removes every file one learner uploaded (their folder holds nothing else). */
+  async removeUserFiles(userId: string): Promise<void> {
+    await rm(this.pathFor(userId), { recursive: true, force: true });
+  }
+
   /** Resolves a key to a path and refuses anything that would escape the storage directory. */
   private pathFor(key: string): string {
     const root = this.config.storageDir;

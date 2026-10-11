@@ -78,3 +78,13 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
+
+/** A file the server sends back (the data export), with the name the server chose. */
+export async function apiFile(path: string): Promise<{ blob: Blob; filename: string }> {
+  const doFetch = () => fetch(`${BASE}${path}`, { credentials: 'same-origin' });
+  let res = await doFetch();
+  if (res.status === 401 && (await refreshSession())) res = await doFetch();
+  if (!res.ok) throw await toError(res);
+  const named = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') ?? '');
+  return { blob: await res.blob(), filename: named?.[1] ?? 'download' };
+}

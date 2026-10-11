@@ -44,6 +44,10 @@ export const RegisterRequestSchema = z.object({
 });
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;
 
+/** Deleting the account for good asks for the password again. */
+export const DeleteAccountSchema = z.object({ password: z.string().min(1).max(200) }).strict();
+export type DeleteAccount = z.infer<typeof DeleteAccountSchema>;
+
 /** What the sign-in screens need to know before anyone is signed in. */
 export interface SystemStatus {
   registrationOpen: boolean;

@@ -11,6 +11,7 @@ import { errorMessage } from '@/lib/errors';
 import { InstallCard } from '@/components/ui/install-card';
 import { ThemePicker } from '@/components/ui/theme-controls';
 import { useProfile, useUpdateProfile } from './hooks';
+import { YourData } from './your-data';
 
 function DifficultyPicker({ value, onPick, saving }: { value: Difficulty; onPick: (d: Difficulty) => void; saving: boolean }) {
   return (
@@ -168,6 +169,12 @@ export function ProfilePage() {
             <Card className="p-6">
               <SettingsForm profile={profile.data} />
             </Card>
+          </section>
+          <section aria-labelledby="your-data" className="space-y-3">
+            <h2 id="your-data" className="font-heading text-2xl font-extrabold tracking-tight">
+              Your data
+            </h2>
+            <YourData />
           </section>
         </>
       )}

@@ -198,6 +198,40 @@ test('signs out and is sent to the sign-in page', async ({ page }) => {
   await expect(page).toHaveURL(/\/login/);
 });
 
+test('the learner can take a copy of all their data, then delete the account for good', async ({ page }) => {
+  await signIn(page);
+  await page.goto('/profile');
+
+  // A copy of everything, as one file.
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download', exact: true }).click()]);
+  expect(download.suggestedFilename()).toMatch(/^english-coach-export-\d{4}-\d{2}-\d{2}\.json$/);
+  const file = JSON.parse(await (await import('node:fs/promises')).readFile((await download.path())!, 'utf8'));
+  expect(file).toMatchObject({ format: 'english-coach-export', user: { email: learner.email } });
+  expect(file.items.length).toBeGreaterThan(0);
+  expect(file.attempts.length).toBeGreaterThan(0);
+  expect(JSON.stringify(file)).not.toContain('passwordHash');
+
+  // Deleting asks for the password, and a wrong one deletes nothing.
+  await page.getByRole('button', { name: 'Delete…' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('heading', { name: 'Delete your account?' })).toBeVisible();
+  await dialog.getByLabel('Type your password to confirm').fill('definitely not it');
+  await dialog.getByRole('button', { name: 'Delete everything' }).click();
+  await expect(dialog.getByText('That password is not correct.')).toBeVisible();
+  await expect(page).toHaveURL(/\/profile$/);
+
+  await dialog.getByLabel('Type your password to confirm').fill(learner.password);
+  await dialog.getByRole('button', { name: 'Delete everything' }).click();
+  await expect(page).toHaveURL(/\/login/);
+
+  // The account is gone: the same email and password no longer sign in.
+  await page.getByLabel('Email').fill(learner.email);
+  await page.getByLabel('Password').fill(learner.password);
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page).toHaveURL(/\/login/);
+});
+
 async function signIn(page: Page) {
   await page.goto('/login');
   await page.getByLabel('Email').fill(learner.email);

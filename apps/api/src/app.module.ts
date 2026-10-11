@@ -19,6 +19,7 @@ import { SessionsModule } from './modules/sessions/sessions.module.js';
 import { HealthController } from './modules/health/health.controller.js';
 import { TeacherModule } from './modules/teacher/teacher.module.js';
 import { UsersModule } from './modules/users/users.module.js';
+import { AccountModule } from './modules/account/account.module.js';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { UsersModule } from './modules/users/users.module.js';
     }),
     AuthModule,
     UsersModule,
+    AccountModule,
     CatalogModule,
     ContentModule,
     TeacherModule,
