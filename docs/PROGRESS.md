@@ -5,7 +5,7 @@
 
 ## وضعیت یک‌خطی
 
-فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۴۶۹ تست + ۱۵ سناریوی E2E دسکتاپ و موبایل). فاز ۶ تمام است به‌جز متن مربی AI (به کلید OpenAI وابسته است و در T9 می‌آید). فاز ۷ (پایدارسازی، T7) تمام شد. مانده: T8 (عنوان درس‌ها، منتظر کاربر) و T9 (OpenAI، آخر؛ کاربر خودش انجام می‌دهد).
+فازهای ۰ تا ۵ و بسته‌ی A (ثبت‌نام، آموزش، کاتالوگ کتاب، سختی تمرین، ظاهر) کامل و تست‌شده‌اند (۴۸۷ تست + ۱۹ سناریوی E2E دسکتاپ و موبایل، که روی build واقعی هم پاس است). فاز ۶ تمام است به‌جز متن مربی AI (به کلید OpenAI وابسته است و در T9 می‌آید). فاز ۷ (پایدارسازی، T7) تمام شد. بسته‌ی B (صدا، Dark mode، PWA، Export/Delete) هم تمام شد. مانده: T8 (عنوان درس‌ها، منتظر فهرست کتاب از کاربر)، T9 (OpenAI، با هم) و T10 (سرور، با هم).
 
 ## ✅ فهرست کارهای باقی‌مانده، به ترتیب اجرا (OpenAI عمداً آخر است)
 
@@ -120,7 +120,7 @@
 
 ## معماری در یک نگاه
 
-monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۴۶۹ تست در زمان نگارش)؛ تست مرورگر جدا: `pnpm e2e` (dev) و `pnpm e2e:prod` (روی build واقعی با CSP)؛ سنجش سرعت: `pnpm perf`.
+monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)، `apps/web` (Next 16 + Tailwind 4)، `packages/contracts` (Zod، منبع حقیقت انواع)، `packages/domain` (منطق خالص: FSRS، planner، تمرین‌ها، assessment). تست: `pnpm turbo run typecheck test build` (۴۸۷ تست در زمان نگارش)؛ تست مرورگر جدا: `pnpm e2e` (dev) و `pnpm e2e:prod` (روی build واقعی با CSP)؛ سنجش سرعت: `pnpm perf`.
 
 ## نکات اجرایی
 
@@ -136,6 +136,7 @@ monorepo (pnpm + Turborepo): `apps/api` (NestJS 12 ESM + Prisma 7 + PostgreSQL)�
 
 - 2026-10-07: فازهای ۰ تا ۳.
 - 2026-10-08/10: فاز ۴، رفع باگ کارت‌های سفید (`cn()` با tailwind-merge)، فاز ۵.
+- 2026-10-11 (شب): بسته‌ی B کامل: B1 صدا و Listen-and-type، B2 Dark mode، B3 PWA، B4 Export/Delete. ابزارهای تازه: `e2e/stack.mjs` (بالا آوردن سرورهای تست برای کلیک‌زدن)، `e2e/seed-demo.mjs` (کاربر دمو با داده)، `e2e/make-icons.mjs`.
 - 2026-10-11 (ادامه): رفع ناپایداری E2E (باگ helper)، CSP سخت‌گیرانه با nonce، `pnpm e2e:prod`، `pnpm perf` و تندکردن ساخت دسته‌ای تمرین‌ها. T7 تمام شد.
 - 2026-10-11: نصب Playwright و نوشتن E2E (۱۴ سناریو)، رفع باگ «Nothing to practice» (free review)، ناپایداری E2E مانده (بالا).
 - 2026-10-10: T6 و بخش بزرگ T7: CountUp، fade، تست مسیر کامل، هدرهای امنیتی، backup، start:local، README.
