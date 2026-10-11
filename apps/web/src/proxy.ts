@@ -19,6 +19,9 @@ export function contentSecurityPolicy(nonce: string, isDev: boolean): string {
     "font-src 'self'",
     // The browser only talks to this origin: `/api/*` is proxied to NestJS.
     "connect-src 'self'",
+    // The service worker and the install manifest, both from this origin.
+    "worker-src 'self'",
+    "manifest-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -52,6 +55,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except the API proxy, Next internals and static files.
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|ico|txt)$).*)'],
+  // Everything except the API proxy, Next internals and static files (the install manifest, the service worker and
+  // the offline page must load without signing in).
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|ico|txt|webmanifest|js|html)$).*)'],
 };

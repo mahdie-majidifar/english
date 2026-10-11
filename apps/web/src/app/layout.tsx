@@ -21,6 +21,9 @@ const vazirmatn = Vazirmatn({
 export const metadata: Metadata = {
   title: { default: 'English Coach', template: '%s · English Coach' },
   description: 'Your personal English coach: practice what you learned today.',
+  applicationName: 'English Coach',
+  icons: { apple: '/icons/apple-touch-icon.png' },
+  appleWebApp: { capable: true, title: 'English Coach', statusBarStyle: 'default' },
 };
 
 export const viewport: Viewport = {

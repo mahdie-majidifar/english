@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Field, SelectField } from '@/components/ui/field';
 import { cn } from '@/lib/cn';
 import { errorMessage } from '@/lib/errors';
+import { InstallCard } from '@/components/ui/install-card';
 import { ThemePicker } from '@/components/ui/theme-controls';
 import { useProfile, useUpdateProfile } from './hooks';
 
@@ -153,6 +154,12 @@ export function ProfilePage() {
               <p className="fa mt-0.5 text-sm text-mute">روشن یا تیره. روی همین دستگاه ذخیره می‌شود.</p>
             </div>
             <ThemePicker />
+          </section>
+          <section aria-labelledby="install" className="space-y-3">
+            <h2 id="install" className="font-heading text-2xl font-extrabold tracking-tight">
+              Use it like an app
+            </h2>
+            <InstallCard />
           </section>
           <section aria-labelledby="about" className="space-y-3">
             <h2 id="about" className="font-heading text-2xl font-extrabold tracking-tight">

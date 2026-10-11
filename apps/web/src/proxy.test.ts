@@ -23,5 +23,8 @@ describe('contentSecurityPolicy', () => {
     expect(directive(policy, 'object-src')).toBe("object-src 'none'");
     expect(directive(policy, 'form-action')).toBe("form-action 'self'");
     expect(directive(policy, 'base-uri')).toBe("base-uri 'self'");
+    // The install manifest and the service worker come from this origin too.
+    expect(directive(policy, 'worker-src')).toBe("worker-src 'self'");
+    expect(directive(policy, 'manifest-src')).toBe("manifest-src 'self'");
   });
 });
