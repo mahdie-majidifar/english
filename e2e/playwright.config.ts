@@ -24,7 +24,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'desktop', testMatch: /journey\.spec\.ts/, use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 860 } } },
+    { name: 'desktop', testMatch: /(journey|security)\.spec\.ts/, use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 860 } } },
     { name: 'phone', testMatch: /phone\.spec\.ts/, use: { ...devices['Pixel 7'] } },
   ],
   webServer: [
@@ -39,10 +39,11 @@ export default defineConfig({
       stderr: 'pipe',
     },
     {
-      command: `pnpm exec next dev --port ${WEB_PORT}`,
+      // `pnpm e2e:prod` (E2E_PROD=1) tests the built site, the way it really runs: the strict Content-Security-Policy only applies there.
+      command: process.env.E2E_PROD ? `pnpm exec next start --port ${WEB_PORT}` : `pnpm exec next dev --port ${WEB_PORT}`,
       cwd: resolve(root, 'apps', 'web'),
       url: `${webOrigin}/login`,
-      env: { API_INTERNAL_URL: `http://localhost:${API_PORT}` },
+      env: { API_INTERNAL_URL: `http://localhost:${API_PORT}`, ...(process.env.E2E_PROD ? { NEXT_DIST_DIR: '.next-e2e' } : {}) },
       reuseExistingServer: false,
       timeout: 180_000,
       stdout: 'ignore',

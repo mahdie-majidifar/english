@@ -19,7 +19,7 @@
 | T4 | چالش‌های روزانه و هفتگی | ✅ | یک چالش روزانه (+۱۵ XP) و یک هفتگی (+۶۰ XP) که از روی تاریخ انتخاب می‌شوند (بدون ذخیره‌ی برنامه)؛ پاداش فقط یک‌بار در `XpEvent` (دلیل `CHALLENGE`)؛ کارت در داشبورد؛ `GET /challenges`؛ achievement «Challenger»؛ ۱۹ تست |
 | T5 | Exam: برگشت به سؤال قبلی، وزن بیشتر Exam در ارتقای سطح، Exam برای Grammar و Vocabulary | ✅ | دکمه‌ی Back در Exam (جواب قبلی برمی‌گردد و قابل تغییر است)؛ جواب درست در Exam دو برابر در ارتقای سطح حساب می‌شود (`evidenceWeight`)؛ دو preset جدید `GRAMMAR` و `VOCABULARY` برای Exam روی همه‌ی کتاب‌ها |
 | T6 | صیقل micro-interactionها | ✅ | شمارش تدریجی XP در نتیجه‌ها (`CountUp`، با احترام به reduced-motion)، محو شدن نرم بین صفحه‌ها؛ انیمیشن‌های قبلی (pop، slide، flame) سر جایشان |
-| T7 | فاز ۷ پایدارسازی: تست E2E، سرعت، امنیت، بکاپ دیتابیس | 🔄 (E2E انجام شد، یک ناپایداری مانده) | **انجام شد:** تست مسیر کامل یک کاربر (`journey.spec.ts`، ۱۱ مرحله از ثبت‌نام تا Achievement)؛ هدرهای امنیتی صفحه‌ها؛ rate limit جداگانه برای همه‌ی مسیرهای AI؛ سه index جدید؛ `pnpm backup` (pg_dump، ۱۴ نسخه‌ی آخر) و راهنمای restore؛ `pnpm start:local` (ساخت، migrate، اجرای API و وب با یک دستور). **E2E با مرورگر واقعی (Playwright) هم نصب و نوشته شد** (پوشه‌ی `e2e/`، ۱۴ سناریو دسکتاپ و موبایل، `pnpm e2e`؛ جزئیات پایین). **مانده:** رفع ناپایداری E2E (بخش «E2E: وضعیت دقیق»)، CSP سخت‌گیرانه (Next اسکریپت inline دارد)، سنجش سرعت با داده‌ی حجیم |
+| T7 | فاز ۷ پایدارسازی: تست E2E، سرعت، امنیت، بکاپ دیتابیس | 🔄 (E2E و CSP انجام شد؛ سنجش سرعت مانده) | **انجام شد:** تست مسیر کامل یک کاربر (`journey.spec.ts`، ۱۱ مرحله از ثبت‌نام تا Achievement)؛ هدرهای امنیتی صفحه‌ها؛ rate limit جداگانه برای همه‌ی مسیرهای AI؛ سه index جدید؛ `pnpm backup` (pg_dump، ۱۴ نسخه‌ی آخر) و راهنمای restore؛ `pnpm start:local` (ساخت، migrate، اجرای API و وب با یک دستور). **E2E با مرورگر واقعی (Playwright) هم نصب و نوشته شد** (پوشه‌ی `e2e/`، ۱۴ سناریو دسکتاپ و موبایل، `pnpm e2e`؛ جزئیات پایین). **ناپایداری E2E رفع شد** (باگ helper بود؛ بخش «E2E: وضعیت دقیق»). **CSP سخت‌گیرانه با nonce انجام شد** (بخش «CSP» پایین). **مانده:** سنجش سرعت با داده‌ی حجیم |
 | T8 | عنوان درس‌های AEF و Collocations | ⏸️ منتظر کاربر | کاربر فهرست محتوای کتاب‌ها را می‌فرستد یا با Paste contents وارد می‌کند |
 | **T9** | **OpenAI (آخر؛ کاربر فردا انجام می‌دهد)** | ⏸️ | خرید و گذاشتن کلید؛ بعد امتحان واقعی همه‌ی مسیرهای AI (تحلیل یادداشت معلم، Explain، Fill with AI، نمره‌ی جواب آزاد)، تنظیم promptها، متن مربی AI برای گزارش هفتگی |
 
@@ -74,6 +74,13 @@
 - **اصلاح:** گزینه‌ها با `getByRole('radiogroup', {name:'Answers'}).getByRole('radio')`؛ regexها درست شدند؛ و اگر helper فرمتی را نشناسد دیگر بی‌صدا Skip نمی‌کند: تست با متن و HTML همان تمرین (و `skipped-N.png`) خطا می‌دهد تا هم باگ helper و هم باگ رندر فوراً دیده شود.
 - **باگ واقعی که E2E پیدا کرد و رفع شد:** وقتی همه‌ی آیتم‌ها همان روز تمرین شده بودند «Today's session» می‌گفت «Nothing to practice yet». حالا اگر چیزی due/جدید/ضعیف نباشد، یک دور «free review» از کم‌بلدترین آیتم‌ها می‌سازد (وزن `freeReview` در planner؛ تست‌های domain و integration دارد).
 - فایل‌های موقت E2E (`e2e/runs`, `skipped-*.png`, `loop.log`, `watch.log`, `test-results`) در `.gitignore` هستند.
+
+## CSP (Content-Security-Policy)
+
+- `apps/web/src/proxy.ts` برای هر درخواست صفحه یک nonce تازه می‌سازد و هدر `Content-Security-Policy` را هم روی درخواست (تا Next موقع رندر nonce را روی اسکریپت‌هایش بگذارد) و هم روی پاسخ می‌گذارد. `script-src 'self' 'nonce-…' 'strict-dynamic'` (در dev با `'unsafe-eval'`)، بدون `unsafe-inline` برای اسکریپت؛ `default-src/connect-src/font-src 'self'`، `img-src 'self' blob: data:`، `object-src 'none'`، `base-uri/form-action 'self'`، `frame-ancestors 'none'`.
+- **عمداً `style-src 'unsafe-inline'` مانده:** React در ۲۰ جا `style="…"` (مثل عرض نوار و نمودار) می‌گذارد و nonce روی attribute کار نمی‌کند؛ استایل کدی اجرا نمی‌کند، پس ریسک کوچک‌تری است.
+- **همه‌ی صفحه‌ها حالا dynamic‌اند** (`await connection()` در `app/layout.tsx`): nonce فقط موقع رندر درخواستی قابل‌گذاشتن است. هزینه: رندر سمت سرور در هر بار دیدن صفحه (برای یک کاربر محلی ناچیز).
+- **تست:** `proxy.test.ts` (۳ تست واحد)؛ `e2e/tests/security.spec.ts` (هدر، nonce جدید در هر دیدن، nonce روی همه‌ی اسکریپت‌های inline، مسدودشدن `onerror` تزریق‌شده، و اینکه ثبت‌نام و صفحه‌های اصلی زیر CSP بدون نقض کار می‌کنند). **`pnpm e2e:prod`** همه‌ی تست‌های مرورگر را روی build واقعی اجرا می‌کند (CSP سخت‌گیرانه فقط آنجا فعال است). این بیلد جدا در `.next-e2e` ساخته می‌شود چون Next آدرس API را موقع build ثابت می‌کند (آدرس API تست ۴۱۰۰)؛ build معمولی و اپ در حال اجرا دست نمی‌خورند. ۱۵ از ۱۵ پاس.
 
 ## کارهای کوچک باقی‌مانده / بدهی فنی
 

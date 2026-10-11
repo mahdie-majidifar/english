@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Plus_Jakarta_Sans, Vazirmatn } from 'next/font/google';
+import { connection } from 'next/server';
 import type { ReactNode } from 'react';
 import { Providers } from './providers';
 import './globals.css';
@@ -25,7 +26,10 @@ export const viewport: Viewport = {
   themeColor: '#FAF8F5',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // Every page is rendered per request: the Content-Security-Policy carries a fresh nonce (see proxy.ts)
+  // that Next can only put on the scripts while rendering, never in a page built ahead of time.
+  await connection();
   return (
     <html lang="en" className={`${jakarta.variable} ${inter.variable} ${vazirmatn.variable}`}>
       <body className="min-h-dvh bg-paper text-ink">

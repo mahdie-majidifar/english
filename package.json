@@ -19,6 +19,7 @@
     "start:local": "node scripts/start-local.mjs",
     "backup": "node scripts/backup-db.mjs",
     "e2e": "pnpm --filter @coach/e2e e2e",
+    "e2e:prod": "pnpm --filter @coach/e2e e2e:prod",
     "e2e:watch": "pnpm --filter @coach/e2e e2e:watch"
   },
   "devDependencies": {

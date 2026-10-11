@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "e2e": "playwright test",
+    "e2e:prod": "node prod.mjs",
     "e2e:ui": "playwright test --ui",
     "e2e:watch": "node watch.mjs"
   },
