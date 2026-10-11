@@ -36,3 +36,4 @@ e2e/runs/
 e2e/skipped-*.png
 e2e/loop.log
 e2e/watch.log
+e2e/stack.log

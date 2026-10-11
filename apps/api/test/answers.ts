@@ -32,6 +32,8 @@ export async function answerFor(prisma: PrismaService, exerciseId: string, right
     }
     case 'word_formation':
       return { answer: right ? (solution as SolutionOf['word_formation']).acceptedAnswers[0] : 'failment' };
+    case 'listen_and_type':
+      return { answer: right ? (solution as SolutionOf['listen_and_type']).acceptedAnswers[0] : 'zzzz' };
     case 'sentence_order': {
       const tokens = (content as ContentOf['sentence_order']).tokens;
       const target = (solution as SolutionOf['sentence_order']).acceptedSentences[0]!.replace(/[.!?]+$/, '').split(/\s+/);

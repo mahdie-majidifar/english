@@ -112,6 +112,17 @@ function fillBlank(solution: SolutionOf['fill_blank'], response: ResponseOf['fil
   return WRONG({ ...base, errorCodes: [solution.errorCode ?? 'OTHER.OTHER'] });
 }
 
+/** Dictation: what was heard, typed. A single word one slip away is "almost"; a sentence must be exact (apart from case and punctuation). */
+function listenAndType(solution: SolutionOf['listen_and_type'], response: ResponseOf['listen_and_type']): Evaluation {
+  const match = compareAnswer(response.answer, solution.acceptedAnswers);
+  const base = { correctAnswerText: solution.acceptedAnswers[0]!, explanationFa: solution.explanationFa ?? null };
+  if (match.verdict === 'correct') return CORRECT(base);
+  if (match.verdict === 'almost') {
+    return { ...CORRECT(base), verdict: 'almost', score: ALMOST_SCORE, errorCodes: ['SPELLING.SPELLING'] };
+  }
+  return WRONG({ ...base, errorCodes: ['LISTENING.MISHEARD'] });
+}
+
 function irregularVerb(
   content: ContentOf['irregular_verb_forms'],
   solution: SolutionOf['irregular_verb_forms'],
@@ -210,6 +221,8 @@ export function evaluateRule(
       return irregularVerb(content as ContentOf['irregular_verb_forms'], solution as SolutionOf['irregular_verb_forms'], response as ResponseOf['irregular_verb_forms']);
     case 'word_formation':
       return wordFormation(solution as SolutionOf['word_formation'], response as ResponseOf['word_formation']);
+    case 'listen_and_type':
+      return listenAndType(solution as SolutionOf['listen_and_type'], response as ResponseOf['listen_and_type']);
     case 'sentence_order':
       return sentenceOrder(content as ContentOf['sentence_order'], solution as SolutionOf['sentence_order'], response as ResponseOf['sentence_order']);
     case 'translation_fa_en':

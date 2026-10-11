@@ -14,6 +14,7 @@ export const EXERCISE_FORMATS = [
   'irregular_verb_forms',
   'word_formation',
   'sentence_order',
+  'listen_and_type',
   'translation_fa_en',
   'free_production',
   'transformation',
@@ -40,6 +41,7 @@ export const ERROR_TYPES = {
   'FORM.WRONG_SUFFIX': { labelEn: 'Wrong suffix', labelFa: 'پسوند نادرست' },
   'FORM.WRONG_POS': { labelEn: 'Wrong part of speech', labelFa: 'نقش دستوری نادرست' },
   'SPELLING.SPELLING': { labelEn: 'Spelling', labelFa: 'املا' },
+  'LISTENING.MISHEARD': { labelEn: 'Misheard words', labelFa: 'اشتباه شنیدن کلمات' },
   'L1.PERSIAN_TRANSFER': { labelEn: 'Persian influence', labelFa: 'تأثیر ساختار فارسی' },
   'OTHER.OTHER': { labelEn: 'Other', labelFa: 'سایر' },
 } as const;
@@ -152,6 +154,21 @@ export const SentenceOrderSolutionSchema = z.object({
   explanationFa,
 });
 
+export const ListenAndTypeContentSchema = z.object({
+  ...guidance,
+  /**
+   * What the browser reads aloud. The device's own voice speaks it, so the text has to reach the browser;
+   * it is never shown on the screen, but it is not a secret either.
+   */
+  audioText: z.string().min(1).max(200),
+  /** Persian meaning shown beside the play button, so a single word is not ambiguous. */
+  meaningFa: z.string().max(200).optional(),
+});
+export const ListenAndTypeSolutionSchema = z.object({
+  acceptedAnswers: answerList,
+  explanationFa,
+});
+
 export const TranslationContentSchema = z.object({
   ...guidance,
   promptFa: z.string().min(1).max(400),
@@ -182,6 +199,7 @@ export const RESPONSE_SCHEMAS = {
   irregular_verb_forms: z.object({ past: z.string().max(60), pastParticiple: z.string().max(60) }),
   word_formation: z.object({ answer: z.string().max(100) }),
   sentence_order: z.object({ order: z.array(z.number().int().min(0).max(30)).max(30) }),
+  listen_and_type: z.object({ answer: z.string().max(300) }),
   translation_fa_en: z.object({ answer: z.string().max(600) }),
   free_production: z.object({ answer: z.string().max(600) }),
   transformation: z.object({ answer: z.string().max(600) }),
@@ -247,6 +265,13 @@ export const FORMAT_SPECS: Record<ExerciseFormat, FormatSpec> = {
     estimatedSeconds: 30,
     levels: ['CONTEXT'],
   },
+  listen_and_type: {
+    content: ListenAndTypeContentSchema,
+    solution: ListenAndTypeSolutionSchema,
+    evaluation: 'RULE',
+    estimatedSeconds: 25,
+    levels: ['RECALL', 'CONTEXT'],
+  },
   translation_fa_en: {
     content: TranslationContentSchema,
     solution: OpenSolutionSchema,
@@ -278,6 +303,7 @@ export type ContentOf = {
   irregular_verb_forms: z.infer<typeof IrregularVerbContentSchema>;
   word_formation: z.infer<typeof WordFormationContentSchema>;
   sentence_order: z.infer<typeof SentenceOrderContentSchema>;
+  listen_and_type: z.infer<typeof ListenAndTypeContentSchema>;
   translation_fa_en: z.infer<typeof TranslationContentSchema>;
   free_production: z.infer<typeof FreeProductionContentSchema>;
   transformation: z.infer<typeof TransformationContentSchema>;
@@ -290,6 +316,7 @@ export type SolutionOf = {
   irregular_verb_forms: z.infer<typeof IrregularVerbSolutionSchema>;
   word_formation: z.infer<typeof WordFormationSolutionSchema>;
   sentence_order: z.infer<typeof SentenceOrderSolutionSchema>;
+  listen_and_type: z.infer<typeof ListenAndTypeSolutionSchema>;
   translation_fa_en: z.infer<typeof OpenSolutionSchema>;
   free_production: z.infer<typeof OpenSolutionSchema>;
   transformation: z.infer<typeof OpenSolutionSchema>;

@@ -419,6 +419,50 @@ function sentenceOrder(item: ItemInput): ExerciseDraft[] {
   return out;
 }
 
+/**
+ * Dictation, made from what the item already holds: the word itself (hear it, type it) and one example
+ * sentence (hear it, type it). The meaning in Persian stays beside the word so homophones are not a lottery.
+ */
+function listenAndType(item: ItemInput): ExerciseDraft[] {
+  if (!['VOCABULARY', 'COLLOCATION', 'EXPRESSION', 'PRONUNCIATION'].includes(item.type)) return [];
+  const out: ExerciseDraft[] = [];
+  const headword = item.headword.trim();
+  if (headword) {
+    const phrase = /s/.test(headword);
+    out.push({
+      format: 'listen_and_type',
+      level: 'RECALL',
+      skill: skillForType(item.type),
+      itemIds: [item.id],
+      key: `lt-word|${item.id}`,
+      content: {
+        instruction: phrase ? 'Listen and type the phrase.' : 'Listen and type the word.',
+        helper: 'Press play as often as you like, then type what you hear.',
+        audioText: headword,
+        meaningFa: persianMeaning(item),
+      },
+      solution: { acceptedAnswers: [headword], explanationFa: item.meaningFa ? `«${headword}» یعنی «${item.meaningFa}».` : undefined },
+    });
+  }
+  const sentence = strings(item.payload['examples']).find((s) => wordsOf(s).length >= 4 && wordsOf(s).length <= 14);
+  if (sentence) {
+    out.push({
+      format: 'listen_and_type',
+      level: 'CONTEXT',
+      skill: skillForType(item.type),
+      itemIds: [item.id],
+      key: `lt-sentence|${item.id}|${sentence}`,
+      content: {
+        instruction: 'Listen and type the sentence.',
+        helper: 'Press play as often as you like. Capital letters and the full stop do not matter.',
+        audioText: sentence,
+      },
+      solution: { acceptedAnswers: [sentence], explanationFa: persianMeaning(item) },
+    });
+  }
+  return out;
+}
+
 function distinctionChoice(item: ItemInput): ExerciseDraft[] {
   if (item.type !== 'WORD_DISTINCTION') return [];
   const members = strings(item.payload['members']).slice(0, 5);
@@ -474,6 +518,7 @@ export function generateTemplates(item: ItemInput, others: ItemInput[]): Exercis
     irregularForms(item),
     ...wordFormation(item),
     ...sentenceOrder(item),
+    ...listenAndType(item),
     ...distinctionChoice(item),
   ].filter((d): d is ExerciseDraft => d !== null);
 }

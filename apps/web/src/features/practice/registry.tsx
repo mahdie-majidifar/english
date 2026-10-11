@@ -2,6 +2,7 @@ import type { ContentOf, ExerciseFormat } from '@coach/contracts';
 import { FillBlank } from './renderers/fill-blank';
 import { Flashcard } from './renderers/flashcard';
 import { IrregularForms } from './renderers/irregular-forms';
+import { ListenAndType } from './renderers/listen-and-type';
 import { Matching } from './renderers/matching';
 import { MultipleChoice } from './renderers/multiple-choice';
 import { OpenText } from './renderers/open-text';
@@ -85,6 +86,16 @@ export const FORMAT_UI: FormatRegistry = {
     howTo: {
       title: 'Put the words in order',
       steps: ['The words are mixed up.', 'Tap them one by one to build the sentence.', 'Tap a word in your sentence to take it back. Press Check at the end.'],
+    },
+  },
+  listen_and_type: {
+    Component: ListenAndType,
+    initial: () => ({ answer: '' }),
+    isReady: text,
+    notReadyLabel: 'Type what you hear',
+    howTo: {
+      title: 'Listen and type',
+      steps: ['Press the speaker to hear it. The turtle plays it slowly.', 'Type exactly what you hear. Capital letters and the full stop do not matter.', 'Press Enter or Check.'],
     },
   },
   translation_fa_en: {

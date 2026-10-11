@@ -179,6 +179,8 @@ function perfectResponse(draft: ExerciseDraft): unknown {
       return { past: solution['past'], pastParticiple: solution['pastParticiple'] };
     case 'word_formation':
       return { answer: (solution as SolutionOf['word_formation']).acceptedAnswers[0] };
+    case 'listen_and_type':
+      return { answer: (solution as SolutionOf['listen_and_type']).acceptedAnswers[0] };
     case 'sentence_order': {
       const tokens = (content as ContentOf['sentence_order']).tokens;
       const target = (solution as SolutionOf['sentence_order']).acceptedSentences[0]!.replace(/[.!?]+$/, '').split(/\s+/);
@@ -201,7 +203,7 @@ describe('generateTemplates', () => {
 
   it('makes a sensible set of exercises from a rich library', () => {
     const formats = new Set(all.map((d) => d.format));
-    for (const f of ['flashcard', 'multiple_choice', 'fill_blank', 'irregular_verb_forms', 'word_formation', 'sentence_order'] as ExerciseFormat[]) {
+    for (const f of ['flashcard', 'multiple_choice', 'fill_blank', 'irregular_verb_forms', 'word_formation', 'sentence_order', 'listen_and_type'] as ExerciseFormat[]) {
       expect(formats.has(f), f).toBe(true);
     }
   });
@@ -276,6 +278,30 @@ describe('generateTemplates', () => {
     const tokens = (so.content as ContentOf['sentence_order']).tokens;
     expect(tokens.join(' ')).not.toBe('She said that she had bought me a present');
     expect([...tokens].sort()).toEqual('She said that she had bought me a present'.split(' ').sort());
+  });
+
+  it('makes dictation from the word and from one example sentence', () => {
+    const lt = draftsFor('i-negotiate').filter((d) => d.format === 'listen_and_type');
+    expect(lt.map((d) => d.level)).toEqual(['RECALL', 'CONTEXT']);
+    const [word, sentence] = lt.map((d) => d.content as ContentOf['listen_and_type']);
+    expect(word!.audioText).toBe('negotiate');
+    expect(word!.meaningFa).toBe('مذاکره کردن');
+    expect(sentence!.audioText).toBe('We negotiated a big discount yesterday.');
+    // The word shows only its Persian meaning on screen; the spoken text is never in the instruction.
+    expect(word!.instruction).not.toContain('negotiate');
+    // Grammar items have no spoken exercise.
+    expect(draftsFor('i-reported').some((d) => d.format === 'listen_and_type')).toBe(false);
+  });
+
+  it('marks dictation: case and the full stop do not matter, one slip in a word is almost, a misheard sentence is wrong', () => {
+    const [word, sentence] = draftsFor('i-negotiate').filter((d) => d.format === 'listen_and_type');
+    const check = (d: ExerciseDraft, answer: string) => evaluateRule(d.format, d.content, d.solution, { answer });
+    expect(check(sentence!, 'we negotiated a big discount yesterday').verdict).toBe('correct');
+    expect(check(word!, 'negociate').verdict).toBe('almost');
+    const wrong = check(sentence!, 'we negotiate a big discount yesterday');
+    expect(wrong.verdict).toBe('wrong');
+    expect(wrong.errorCodes).toEqual(['LISTENING.MISHEARD']);
+    expect(wrong.correctAnswerText).toBe('We negotiated a big discount yesterday.');
   });
 
   it('skips multiple choice when there are not enough distractors', () => {

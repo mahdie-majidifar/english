@@ -60,6 +60,10 @@ test('learns the lesson one item at a time, with an explanation on request', asy
   await expect(page.getByRole('heading', { level: 1 })).toContainText('1A');
   await expect(page.getByText('1 of 6')).toBeVisible();
 
+  // The device reads the word aloud: no AI, no key. (Headless Chrome has the speech API, so the buttons show.)
+  await expect(page.getByRole('button', { name: /^Listen to “/ }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Listen slowly to “/ }).first()).toBeVisible();
+
   await page.getByRole('button', { name: 'Explain with AI' }).click();
   await expect(page.getByText('حالت mock').first()).toBeVisible();
 

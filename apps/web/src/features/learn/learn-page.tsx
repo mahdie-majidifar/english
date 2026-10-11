@@ -8,6 +8,7 @@ import { ITEM_TYPE_META, type Explanation, type Item } from '@coach/contracts';
 import { Button, buttonClass } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SkillChip } from '@/components/ui/skill-chip';
+import { SpeakButton } from '@/components/ui/speak-button';
 import { cn } from '@/lib/cn';
 import { errorMessage } from '@/lib/errors';
 import { QuizButton } from '@/features/assessments/quiz-button';
@@ -114,7 +115,10 @@ function ItemCard({ item }: { item: Item }) {
     <div className="space-y-5">
       <Card className="space-y-4 p-6 sm:p-8">
         <SkillChip mode={meta.mode} label={meta.label} />
-        <h2 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">{item.headword}</h2>
+        <div className="flex flex-wrap items-center gap-4">
+          <h2 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">{item.headword}</h2>
+          <SpeakButton text={item.headword} withSlow />
+        </div>
         {item.meaningEn && <p className="text-xl text-ink">{item.meaningEn}</p>}
         {item.meaningFa && <p className="fa text-xl text-mute">{item.meaningFa}</p>}
         {!item.meaningEn && !item.meaningFa && <p className="text-base text-mute">No meaning saved yet.</p>}

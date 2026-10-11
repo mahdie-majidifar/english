@@ -9,6 +9,7 @@ import { buttonClass, Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { MasteryChip } from '@/components/ui/mastery-chip';
+import { SpeakButton } from '@/components/ui/speak-button';
 import { SkillChip } from '@/components/ui/skill-chip';
 import { errorMessage } from '@/lib/errors';
 import { useArchiveItem, useItem } from '@/features/content/hooks';
@@ -34,8 +35,9 @@ function Examples({ examples }: { examples: string[] }) {
     <Section title="Examples">
       <ul className="space-y-3">
         {examples.map((e) => (
-          <li key={e} className="rounded-2xl bg-subtle px-4 py-3 text-lg leading-relaxed">
-            {e}
+          <li key={e} className="flex items-center justify-between gap-3 rounded-2xl bg-subtle px-4 py-3 text-lg leading-relaxed">
+            <span>{e}</span>
+            <SpeakButton text={e} />
           </li>
         ))}
       </ul>
@@ -230,7 +232,10 @@ export function ItemDetailPage() {
         </div>
 
         <div>
-          <h1 className="break-words font-heading text-5xl font-extrabold leading-tight tracking-tight">{item.headword}</h1>
+          <div className="flex flex-wrap items-center gap-4">
+            <h1 className="break-words font-heading text-5xl font-extrabold leading-tight tracking-tight">{item.headword}</h1>
+            <SpeakButton text={item.headword} withSlow />
+          </div>
           {(ipa || pos) && (
             <p className="mt-2 text-lg text-mute">
               {[ipa, pos].filter(Boolean).join(' · ')}

@@ -8,7 +8,8 @@
     "e2e:prod": "node prod.mjs",
     "e2e:ui": "playwright test --ui",
     "e2e:watch": "node watch.mjs",
-    "perf": "node perf.mjs"
+    "perf": "node perf.mjs",
+    "stack": "node stack.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

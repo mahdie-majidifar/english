@@ -3,6 +3,7 @@
 import { RotateCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ContentOf } from '@coach/contracts';
+import { SpeakButton } from '@/components/ui/speak-button';
 import { cn } from '@/lib/cn';
 import type { RendererProps } from './types';
 
@@ -77,6 +78,10 @@ export function Flashcard({ content, locked, sendNow }: RendererProps<ContentOf[
           </div>
         </div>
       </button>
+
+      <div className="flex justify-center">
+        <SpeakButton text={front.text} withSlow />
+      </div>
 
       <div
         className={cn('space-y-3 transition-opacity duration-300', flipped ? 'opacity-100' : 'pointer-events-none opacity-30')}

@@ -56,6 +56,8 @@ describe.skipIf(!hasDatabase())('exercises, practice and attempts (real PostgreS
       }
       case 'word_formation':
         return { answer: right ? (solution as SolutionOf['word_formation']).acceptedAnswers[0] : 'failment' };
+      case 'listen_and_type':
+        return { answer: right ? (solution as SolutionOf['listen_and_type']).acceptedAnswers[0] : 'zzzz' };
       case 'sentence_order': {
         const tokens = (content as ContentOf['sentence_order']).tokens;
         const target = (solution as SolutionOf['sentence_order']).acceptedSentences[0]!.replace(/[.!?]+$/, '').split(/\s+/);
@@ -296,6 +298,22 @@ describe.skipIf(!hasDatabase())('exercises, practice and attempts (real PostgreS
       expect(typo.body).toMatchObject({ verdict: 'almost', isCorrect: true, score: 0.8, errorCodes: ['SPELLING.SPELLING'] });
       const form = await submit(alice, fb.id, { answer: 'negotiate' }).expect(200);
       expect(form.body).toMatchObject({ verdict: 'wrong', isCorrect: false, correctAnswerText: 'negotiated' });
+    });
+
+    it('dictation: the spoken text reaches the browser, a misheard word is a listening mistake', async () => {
+      const pool = await ctx.prisma.exercise.findMany({ where: { ownerId: aliceId, format: 'listen_and_type' } });
+      const word = pool.find((e) => (e.content as ContentOf['listen_and_type']).audioText === 'negotiate')!;
+      expect(word, 'expected the dictation of "negotiate" in the pool').toBeTruthy();
+
+      // The learner receives the text to speak, never the answer key.
+      const run = await practice({ scope: 'item', itemId: itemIds['negotiate'], count: 8 });
+      const sent = run.exercises.find((e) => e.id === word.id);
+      if (sent) expect(JSON.stringify(sent)).not.toContain('acceptedAnswers');
+
+      const right = await submit(alice, word.id, { answer: 'Negotiate' }).expect(200);
+      expect(right.body).toMatchObject({ verdict: 'correct', isCorrect: true });
+      const wrong = await submit(alice, word.id, { answer: 'navigate' }).expect(200);
+      expect(wrong.body).toMatchObject({ verdict: 'wrong', correctAnswerText: 'negotiate', errorCodes: ['LISTENING.MISHEARD'] });
     });
 
     it('irregular verbs report which form was wrong', async () => {
